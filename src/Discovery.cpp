@@ -9,15 +9,15 @@
 #include <cstdio>
 #include <iostream>
 
-#define PORT 4000
-
+#define PORT 4000 //port envio
+#define PORT2 4001 //port receive
 //TODO  -participante listen que devolva o ip e etc...
 //      -decidir tempo entre broadcasts
 //      -separar as classes em arquivos proprios?
-class Manager
-{
+ class Manager
+ {
     public:
-    void broadcast(int sockfd,sockaddr_in serv_addr,sockaddr_in cli_addr,char buf[256])
+    void broadcast(int sockfd,sockaddr_in serv_addr,char buf[256])
     {
         //cria/abre o socket e se não conseguir abrir printa o erro
         if((sockfd = socket(AF_INET,SOCK_DGRAM,0)) == -1)
@@ -42,7 +42,7 @@ class Manager
             std::cout << "Error on sendto";
             close(sockfd);
         }
-         sleep(30);
+         sleep(2);
         }
 
             
@@ -52,9 +52,36 @@ class Manager
 class Participant
 {
     public:
-    void listen()
+    void receivesock(int sockfd,sockaddr_in cli_addr,char buf[256])
     {
+        std::cout << "chegou5";
+        if((sockfd = socket(AF_INET,SOCK_DGRAM,0)) == -1)
+            std::cout << "Error opening rec socket";
+        std::cout << "chegou1";
+        cli_addr.sin_family = AF_INET;
+        cli_addr.sin_port = htons(PORT);
+        cli_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
+        socklen_t socketAddressLenght = sizeof(struct sockaddr_in);
+        int reuse_addr = 1;
+        int listenSocket = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,(const char*)&reuse_addr, sizeof(reuse_addr));
+        
+        if (bind(sockfd, (struct sockaddr *) &cli_addr,socketAddressLenght) < 0) 
+		    std::cout << "ERROR on rec binding";
+        std::cout << "chegou2";
+        while(1)
+        {
+            std::cout << "chegou3";
+            if(listenSocket = recvfrom(sockfd,buf,strlen(buf),0,(struct sockaddr *)&cli_addr,&socketAddressLenght) < 0)
+            {
+                std::cout << "Error on recvfrom";
+                close(sockfd);
+            }
+            else
+                std::cout << "chegou";
+            sleep(1);
+            std::cout << listenSocket;
+        }
     }
 
 };
@@ -67,33 +94,32 @@ int main()
     int inputNumber = 0;
 
     //bagulho dos sockets
-    int sockfd; //socket file descriptor
+    int sockfd,recsockfd; //socket file descriptor
     socklen_t clilen; //
     struct sockaddr_in serv_addr,cli_addr; //server address and client address
-    char buf[256] = "Acorda"; //buffer msg 
-    
+    char sendbuf[256] = "Acorda"; //buffer msg 
+    char recbuf[256] = "";
     //manager and participant
     Manager managerPC;
     Participant participantPC;
-
     std::cin >> inputTerminal; 
     if(inputTerminal == manager)
         inputNumber = 1;
     else if(inputTerminal == participant)
-        inputNumber = 0;
+        inputNumber = 2;
     else
         inputNumber = -1;
 
     switch(inputNumber)
     {
-        case 0:
+        case 2:
             std::cout << "running as participant\n";
-            //funçao participant ou objeto?
+            participantPC.receivesock(recsockfd,cli_addr,recbuf);
+            std::cout << "chegou";
             break;
         case 1:
             std::cout << "running as manager\n";
-            //funcao manager ou objeto?
-            managerPC.broadcast(sockfd,serv_addr,cli_addr,buf);
+            managerPC.broadcast(sockfd,serv_addr,sendbuf);
             break;
         default:
             std::cout << "invalid input\n";
