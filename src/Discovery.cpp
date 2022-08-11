@@ -19,12 +19,14 @@
     public:
     void broadcast(int sockfd,sockaddr_in serv_addr,char buf[256])
     {
+        std::cout <<"S";
+        std::cout.flush();
         //cria/abre o socket e se não conseguir abrir printa o erro
         if((sockfd = socket(AF_INET,SOCK_DGRAM,0)) == -1)
             std::cout << "Error opening socket";
 
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(PORT); //host to network short ?
+        serv_addr.sin_port = htons(PORT2); //host to network short ?
         serv_addr.sin_addr.s_addr = htonl(INADDR_BROADCAST); //ipv4 pode usar inet_aton para transforma ip do tipo xx.xx.xx.xx em tipo valido pra struct
 
         socklen_t socketAddressLenght = sizeof(struct sockaddr_in);
@@ -37,6 +39,8 @@
 
         while(1)
         {
+                std::cout <<"S";
+                std::cout.flush();
         if(broadcastSocket = sendto(sockfd,buf,strlen(buf),0,(struct sockaddr *)&serv_addr,socketAddressLenght) < 0)
         {
             std::cout << "Error on sendto";
@@ -54,12 +58,12 @@ class Participant
     public:
     void receivesock(int sockfd,sockaddr_in cli_addr,char buf[256])
     {
-        std::cout << "chegou5";
+
         if((sockfd = socket(AF_INET,SOCK_DGRAM,0)) == -1)
             std::cout << "Error opening rec socket";
-        std::cout << "chegou1";
+
         cli_addr.sin_family = AF_INET;
-        cli_addr.sin_port = htons(PORT);
+        cli_addr.sin_port = htons(PORT2);
         cli_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
         socklen_t socketAddressLenght = sizeof(struct sockaddr_in);
@@ -68,19 +72,20 @@ class Participant
         
         if (bind(sockfd, (struct sockaddr *) &cli_addr,socketAddressLenght) < 0) 
 		    std::cout << "ERROR on rec binding";
-        std::cout << "chegou2";
+
         while(1)
         {
-            std::cout << "chegou3";
-            if(listenSocket = recvfrom(sockfd,buf,strlen(buf),0,(struct sockaddr *)&cli_addr,&socketAddressLenght) < 0)
+            std::cout <<"S";
+            std::cout.flush();
+            if(listenSocket = (int)recvfrom(sockfd,buf,strlen(buf),0,(struct sockaddr *)&cli_addr,&socketAddressLenght) < 0)
             {
                 std::cout << "Error on recvfrom";
+                std::cout.flush();
                 close(sockfd);
             }
-            else
-                std::cout << "chegou";
             sleep(1);
-            std::cout << listenSocket;
+            std::cout <<"D";
+            std::cout.flush();
         }
     }
 
@@ -103,6 +108,7 @@ int main()
     Manager managerPC;
     Participant participantPC;
     std::cin >> inputTerminal; 
+    std::cout.flush();
     if(inputTerminal == manager)
         inputNumber = 1;
     else if(inputTerminal == participant)
