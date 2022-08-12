@@ -133,7 +133,7 @@ using namespace std;
 
             //como resolver o status?
             string status = "Awaken";
-            
+
             n = sendto(sockfd, status.c_str(), 6, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
             if (n < 0)
                 printf("ERROR on sendto");

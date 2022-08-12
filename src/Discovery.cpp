@@ -134,17 +134,7 @@ public:
             if(!verifySameIp(inet_ntoa(from.sin_addr),ParticipantsInfo))
                 ParticipantsInfo.push_back(ParticipantInfo(server->h_name, buffer, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
             showParticipants();
-            // isso aqui é um segundo envio/recebimento de mensagem?
 
-            // sleep(1);
-            // n = sendto(sockfd, "gdsantana é brabo\n", 18, 0, (const struct sockaddr *) &from, sizeof(struct sockaddr_in));
-            // if (n < 0)
-            // 	printf("ERROR sendto");
-
-            // n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *) &from, &length);
-            // if (n < 0)
-            // 	printf("ERROR recvfrom");
-            // printf("Second message sent\n");
             sleep(2);
         }
         close(sockfd);
