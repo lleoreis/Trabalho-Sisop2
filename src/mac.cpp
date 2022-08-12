@@ -5,11 +5,15 @@
 #include <string>
 #include <array>
 
-std::string getMacAddress() {
+std::string getMacAddress(char* placaRede) {
    std::array<char, 128> buffer;
     std::string result,mac;
     int i,start;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("cat /sys/class/net/enp7s0/address", "r"), pclose);
+    std::string command = "cat /sys/class/net/";
+    command.append(placaRede);
+    command.append("/address");
+    
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
     if (!pipe) {
         throw std::runtime_error("popen() failed!");
     }
@@ -23,6 +27,6 @@ std::string getMacAddress() {
     {
         mac += result[i];
     }
-    std::cout << mac<< std::endl;
+
     return mac;
 }

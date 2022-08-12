@@ -49,7 +49,7 @@ class Manager
 
 public:
     vector<ParticipantInfo> ParticipantsInfo;
-
+    
     void showParticipants()
     {
         cout << "Hostname"
@@ -68,7 +68,7 @@ public:
         }
     }
 
-    void broadcast()
+    void broadcast(char* placaRede)
     {
 
         int sockfd, n;
@@ -80,6 +80,8 @@ public:
         int broadcastPermission = 1;
         char *broadcastIP;
 
+        string  mac = getMacAddress(placaRede);
+
         broadcastIP = "255.255.255.255";
         if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
             printf("ERROR opening socket");
@@ -90,12 +92,13 @@ public:
         }
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_port = htons(PORT);
-        serv_addr.sin_addr.s_addr = inet_addr(broadcastIP);
+        serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); //pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
         bzero(&(serv_addr.sin_zero), 8);
 
+        
         while (1)
         {
-            n = sendto(sockfd, "Foi descoberto\n", 15, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
+            n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
             if (n < 0)
                 printf("ERROR sendto");
 
@@ -103,9 +106,9 @@ public:
             n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *)&from, &length);
             if (n < 0)
                 printf("ERROR recvfrom");
-            printf("MAC Address: %s\n", buffer);
-            printf("Participant ip: %s\n", inet_ntoa(from.sin_addr));
-            printf("Participant PORT: %d\n", ntohs(from.sin_port));
+            // printf("MAC Address: %s\n", buffer);
+            // printf("Participant ip: %s\n", inet_ntoa(from.sin_addr));
+            // printf("Participant PORT: %d\n", ntohs(from.sin_port));
 
             server = gethostbyaddr(&(from.sin_addr), sizeof(from.sin_addr), AF_INET);
             if (server == NULL)
@@ -114,7 +117,7 @@ public:
                 printf("Participant NAME: %s\n", server->h_name);
 
             ParticipantsInfo.push_back(ParticipantInfo(server->h_name, buffer, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-            // showParticipants();
+            showParticipants();
             // isso aqui é um segundo envio/recebimento de mensagem?
 
             // sleep(1);
@@ -144,7 +147,7 @@ public:
         cout << ip << " | ";
         cout << mac << " |";
     }
-    void receive()
+    void receive(char* placaRede)
     {
         int sockfd, n;
         socklen_t clilen;
@@ -165,7 +168,7 @@ public:
             printf("ERROR on binding");
 
         clilen = sizeof(struct sockaddr_in);
-        string  mac = getMacAddress();
+        string  mac = getMacAddress(placaRede);
 
         
         while (1)
@@ -189,43 +192,35 @@ public:
             if (n < 0)
                 printf("ERROR on sendto");
             bzero(buf, 256);
+
         }
     }
 };
 
-int main()
+int main(int argc, char *argv[])
 {
-    // bagulho de escolha entre modo manager e modo participant(TEMPORARIO)
-    string inputTerminal;
-    string manager = "manager";
-    string participant = "participant";
-    int inputNumber = 0;
-    // manager and participant
     Manager managerPC;
     Participant participantPC;
-    cin >> inputTerminal;
-    cout.flush();
-    if (inputTerminal == manager)
-        inputNumber = 1;
-    else if (inputTerminal == participant)
-        inputNumber = 2;
-    else
-        inputNumber = -1;
 
-    switch (inputNumber)
+    switch (argc)
     {
     case 2:
         cout << "running as participant\n";
-        participantPC.receive();
+        participantPC.receive(argv[1]);
         cout << "chegou";
         break;
-    case 1:
-        cout << "running as manager\n";
-        managerPC.broadcast();
+    case 3:
+        cout << argv[1];
+        if(!strcmp(argv[1],"manager"))
+        {
+            cout << "running as manager\n";
+            managerPC.broadcast(argv[2]);
+        }
         break;
     default:
         cout << "invalid input\n";
         break;
     }
+
     return 0;
 }
