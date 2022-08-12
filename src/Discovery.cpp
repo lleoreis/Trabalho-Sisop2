@@ -22,7 +22,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include "Participant.h"
 #include <vector>
 #include <iostream>
 #include <stdio.h>
@@ -36,7 +35,14 @@
 #include <fcntl.h>
 #include <net/if.h>
 #include <unistd.h>
+
+#include "Participant.h"
+#include "mac.cpp"
+
 #define PORT 4000
+
+using namespace std;
+
 
 class Manager
 {
@@ -46,19 +52,19 @@ public:
 
     void showParticipants()
     {
-        std::cout << "Hostname"
+        cout << "Hostname"
                   << "Ip Address"
                   << "Mac Address"
                   << "Status" << endl;
         for (int i = 0; i < ParticipantsInfo.size(); i++)
         {
-            std::cout << ParticipantsInfo.at(i).getHostname() << " | ";
-            std::cout << ParticipantsInfo.at(i).getIp() << " | ";
-            std::cout << ParticipantsInfo.at(i).getMac() << " | ";
+            cout << ParticipantsInfo.at(i).getHostname() << " | ";
+            cout << ParticipantsInfo.at(i).getIp() << " | ";
+            cout << ParticipantsInfo.at(i).getMac() << " | ";
             if (ParticipantsInfo.at(i).getStatus())
-                std::cout << "Awaken |" << endl;
+                cout << "Awaken |" << endl;
             else
-                std::cout << "Asleep |" << endl;
+                cout << "Asleep |" << endl;
         }
     }
 
@@ -97,7 +103,7 @@ public:
             n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *)&from, &length);
             if (n < 0)
                 printf("ERROR recvfrom");
-             printf("MAC Address: %s\n", buffer);
+            printf("MAC Address: %s\n", buffer);
             printf("Participant ip: %s\n", inet_ntoa(from.sin_addr));
             printf("Participant PORT: %d\n", ntohs(from.sin_port));
 
@@ -129,37 +135,14 @@ public:
 class Participant
 {
 public:
-    void getMacAddress(char *uc_Mac)
-    {
-        int fd;
-
-        struct ifreq ifr;
-        char *iface = "eth0";
-        char *mac;
-
-        fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-        ifr.ifr_addr.sa_family = AF_INET;
-        strncpy((char *)ifr.ifr_name, (const char *)iface, IFNAMSIZ - 1);
-
-        ioctl(fd, SIOCGIFHWADDR, &ifr);
-
-        close(fd);
-
-        mac = (char *)ifr.ifr_hwaddr.sa_data;
-
-        // display mac address
-        sprintf((char *)uc_Mac, (const char *)"%.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    }
-
     void showManager(string hostname, string ip, string mac)
     {
-        std::cout << "Hostname"
+        cout << "Hostname"
                   << "Ip Address"
                   << "Mac Address" << endl;
-        std::cout << hostname << " | ";
-        std::cout << ip << " | ";
-        std::cout << mac << " |";
+        cout << hostname << " | ";
+        cout << ip << " | ";
+        cout << mac << " |";
     }
     void receive()
     {
@@ -182,9 +165,9 @@ public:
             printf("ERROR on binding");
 
         clilen = sizeof(struct sockaddr_in);
-        char mac[32]={0};
+        string  mac = getMacAddress();
 
-	    getMacAddress (mac);
+        
         while (1)
         {
             /* receive from socket */
@@ -202,7 +185,7 @@ public:
 
             /* send to socket */
 
-            n = sendto(sockfd, mac, 32, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
+            n = sendto(sockfd, mac.c_str(), 32, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
             if (n < 0)
                 printf("ERROR on sendto");
             bzero(buf, 256);
@@ -213,15 +196,15 @@ public:
 int main()
 {
     // bagulho de escolha entre modo manager e modo participant(TEMPORARIO)
-    std::string inputTerminal;
-    std::string manager = "manager";
-    std::string participant = "participant";
+    string inputTerminal;
+    string manager = "manager";
+    string participant = "participant";
     int inputNumber = 0;
     // manager and participant
     Manager managerPC;
     Participant participantPC;
-    std::cin >> inputTerminal;
-    std::cout.flush();
+    cin >> inputTerminal;
+    cout.flush();
     if (inputTerminal == manager)
         inputNumber = 1;
     else if (inputTerminal == participant)
@@ -232,16 +215,16 @@ int main()
     switch (inputNumber)
     {
     case 2:
-        std::cout << "running as participant\n";
+        cout << "running as participant\n";
         participantPC.receive();
-        std::cout << "chegou";
+        cout << "chegou";
         break;
     case 1:
-        std::cout << "running as manager\n";
+        cout << "running as manager\n";
         managerPC.broadcast();
         break;
     default:
-        std::cout << "invalid input\n";
+        cout << "invalid input\n";
         break;
     }
     return 0;
