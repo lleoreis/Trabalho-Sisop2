@@ -5,13 +5,20 @@
 #include <string>
 #include <array>
 
-std::string exec() {
-    std::array<char, 128> buffer;
-    std::string result,mac;
+using namespace std;
+
+string getMacAddress(char* placaRede) {
+    array<char, 128> buffer;
+    
+    string result,mac,hostnameMacAddress,hostname;
     int i,start;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("arp -a", "r"), pclose);
+    string command = "cat /sys/class/net/";
+    command.append(placaRede);
+    command.append("/address");
+    
+    unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
     if (!pipe) {
-        throw std::runtime_error("popen() failed!");
+        throw runtime_error("popen() failed!");
     }
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         result += buffer.data();
@@ -23,5 +30,17 @@ std::string exec() {
     {
         mac += result[i];
     }
-    return mac;
+    unique_ptr<FILE, decltype(&pclose)> pipe2(popen("hostname", "r"), pclose);
+    if (!pipe2) {
+        throw runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe2.get()) != nullptr) {
+        hostname += buffer.data();
+    }
+    hostnameMacAddress.append(mac);
+    hostnameMacAddress.append("|");
+    hostnameMacAddress.append(hostname);
+    
+
+    return hostnameMacAddress;
 }
