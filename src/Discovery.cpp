@@ -81,6 +81,8 @@ public:
             return false;
         }
 
+
+
     void broadcast(char* placaRede)
     {
 
@@ -129,7 +131,7 @@ public:
             else
                 printf("Participant NAME: %s\n", server->h_name);
 
-            if(!verifySameIp)
+            if(!verifySameIp(inet_ntoa(from.sin_addr),ParticipantsInfo))
                 ParticipantsInfo.push_back(ParticipantInfo(server->h_name, buffer, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
             showParticipants();
             // isso aqui é um segundo envio/recebimento de mensagem?
