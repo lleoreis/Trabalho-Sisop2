@@ -22,15 +22,37 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-
+#include <Participant.h>
+#include <vector>
 #define PORT 4000
 
 
  class Manager
  {
+
     public:
+
+    vector<ParticipantInfo> ParticipantsInfo;
+
+    void showParticipants()
+    {
+        std::cout << "Hostname" << "Ip Address" << "Mac Address" << "Status" << endl;
+        for(int i = 0;i < ParticipantsInfo.size(); i++)
+        {
+            std::cout << ParticipantsInfo.at(i).getHostname() << " | ";
+            std::cout << ParticipantsInfo.at(i).getIp() << " | ";
+            std::cout << ParticipantsInfo.at(i).getMac() << " | ";
+            if(ParticipantsInfo.at(i).getStatus())
+                std::cout << "Awaken |" << endl;
+            else
+                std::cout << "Asleep |" << endl;
+            
+        }
+    }
+
     void broadcast()
     {
+        
         int sockfd, n;
         unsigned int length;
         struct sockaddr_in serv_addr, from;
@@ -53,7 +75,7 @@
         serv_addr.sin_addr.s_addr = inet_addr(broadcastIP);
         bzero(&(serv_addr.sin_zero), 8);
         while(1){
-		n = sendto(sockfd, "Acordou Pedrinho?\n", 18, 0, (const struct sockaddr *) &serv_addr, sizeof(struct sockaddr_in));
+		n = sendto(sockfd, "Acordou Pedrinho?\n", 18, 0, (const struct sockaddr *) &serv_addr, sizeof(struct sockaddr_in)); //enviar endereço mac da maquina manager
 		if (n < 0) 
 			printf("ERROR sendto");
 		
@@ -62,7 +84,7 @@
 		if (n < 0)
 			printf("ERROR recvfrom");
 		printf("Got an ack: %s\n", buffer);
-		printf("Server ip: %s\n", inet_ntoa(from.sin_addr));
+		printf("Server ip: %s\n", inet_ntoa(from.sin_addr)); 
 		printf("Server PORT: %d\n", ntohs(from.sin_port));
 
 		server = gethostbyaddr(&(from.sin_addr), sizeof(from.sin_addr), AF_INET);
@@ -71,17 +93,23 @@
 		else
 			printf("Server NAME: %s\n", server->h_name);
 
-		
-		sleep(1);
-		n = sendto(sockfd, "gdsantana é brabo\n", 18, 0, (const struct sockaddr *) &from, sizeof(struct sockaddr_in));
-		if (n < 0) 
-			printf("ERROR sendto");
+        ParticipantsInfo.push_back(ParticipantInfo(server->h_name,"mac a",inet_ntoa(from.sin_addr),true)); //mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
+        showParticipants();
+		//isso aqui é um segundo envio/recebimento de mensagem?
 
-		n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *) &from, &length);
-		if (n < 0)
-			printf("ERROR recvfrom");
-		printf("Second message sent\n");
-		sleep(2);
+		// sleep(1);
+		// n = sendto(sockfd, "gdsantana é brabo\n", 18, 0, (const struct sockaddr *) &from, sizeof(struct sockaddr_in));
+		// if (n < 0) 
+		// 	printf("ERROR sendto");
+
+		// n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *) &from, &length);
+		// if (n < 0)
+		// 	printf("ERROR recvfrom");
+		// printf("Second message sent\n");
+		// sleep(2);
+
+
+
 	}
 	close(sockfd);
     }
@@ -90,7 +118,15 @@
 class Participant
 {
     public:
-    
+
+    void showManager(string hostname,string ip,string mac)
+    {
+        std::cout << "Hostname" << "Ip Address" << "Mac Address" << endl;
+        std::cout << hostname << " | ";
+        std::cout << ip << " | ";
+        std::cout << mac << " |";
+
+    }
     void receive()
     {
         int sockfd, n;
