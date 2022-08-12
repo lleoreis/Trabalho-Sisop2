@@ -37,5 +37,6 @@ class ParticipantInfo{
         {
             status = _status;
         }
+
 };
 

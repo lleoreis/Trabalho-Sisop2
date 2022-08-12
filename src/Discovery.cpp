@@ -52,10 +52,10 @@ public:
     
     void showParticipants()
     {
-        cout << "Hostname"
-                  << "Ip Address"
-                  << "Mac Address"
-                  << "Status" << endl;
+        cout << "Hostname "
+                  << "Ip Address "
+                  << "Mac Address "
+                  << "Status " << endl;
         for (int i = 0; i < ParticipantsInfo.size(); i++)
         {
             cout << ParticipantsInfo.at(i).getHostname() << " | ";
@@ -67,6 +67,19 @@ public:
                 cout << "Asleep |" << endl;
         }
     }
+
+    bool verifySameIp(string newIp,vector<ParticipantInfo> ParticipantsInfo)
+        {
+            for (int i = 0; i < ParticipantsInfo.size(); i++)
+            {
+                if(!strcmp(newIp.c_str(),ParticipantsInfo.at(i).getIp().c_str()))
+                {
+                    return true;
+                }
+
+            }
+            return false;
+        }
 
     void broadcast(char* placaRede)
     {
@@ -116,7 +129,8 @@ public:
             else
                 printf("Participant NAME: %s\n", server->h_name);
 
-            ParticipantsInfo.push_back(ParticipantInfo(server->h_name, buffer, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
+            if(!verifySameIp)
+                ParticipantsInfo.push_back(ParticipantInfo(server->h_name, buffer, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
             showParticipants();
             // isso aqui é um segundo envio/recebimento de mensagem?
 
