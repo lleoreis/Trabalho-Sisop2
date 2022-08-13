@@ -21,6 +21,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <net/if.h>
+#include <pthreads.h>
 
 #include "Discovery.h"
 
@@ -34,11 +35,17 @@ int main(int argc, char *argv[])
     vector<ParticipantInfo> ParticipantsInfo;
     Manager managerPC;
     Participant participantPC;
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_t thr_participant, thr2;
 
     switch (argc)
     {
     case 2:
         cout << "running as participant\n";
+        //cria thread mas n ententi q tem q passar so um parametro ali no n1
+        //tem que passar o mutex pra dentro do receive
+        //dentro da thread é usar as premissas de lock e unlock
+        //pthread_create(&thr_participant, NULL, participantPC.receive(argv[1]),(void *) &n1);
         participantPC.receive(argv[1]);
         cout << "chegou";
         break;

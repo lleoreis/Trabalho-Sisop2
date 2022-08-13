@@ -1,26 +1,3 @@
-#include <sys/types.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string>
-#include <cstring>
-#include <netdb.h>
-#include <cstdio>
-#include <iostream>
-#include <arpa/inet.h>
-#include <memory>
-#include <stdexcept>
-#include <array>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
-#include <vector>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <net/if.h>
-
 
 #include "Discovery.h"
 #include "tools.h"
@@ -95,6 +72,8 @@ using namespace std;
         
         while (1)
         {
+            
+            //
             n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
             if (n < 0)
                 printf("ERROR sendto");
