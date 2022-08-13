@@ -1,0 +1,158 @@
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string>
+#include <cstring>
+#include <netdb.h>
+#include <cstdio>
+#include <iostream>
+#include <arpa/inet.h>
+#include <memory>
+#include <stdexcept>
+#include <array>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <time.h>
+#include <vector>
+#include <iostream>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <net/if.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <sstream>
+#include "Participant.h"
+
+#define PORT2 4001
+
+using namespace std;
+
+//Arrumar a passagem da lista de participantes!!!!!!
+    string ReplaceAll(string str, const string& from, const string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+    return str;
+    }
+    string createMagicPacket(string macAddress)
+    {
+        string macAddr = "\\x";
+        string buffer ("\xff\xff\xff\xff\xff\xff");
+        unsigned char packet[102];
+        macAddress = ReplaceAll(macAddress,string(":"),string("\\x"));
+        macAddr.append(macAddress);
+        for (int i = 0 ;i < 6 ; i++)
+            buffer.append(macAddr);
+
+        return buffer;
+
+
+    }
+
+void sendWoL(vector<ParticipantInfo> ParticipantsInfo)
+    {
+        
+        int sockfd, n;
+        unsigned int length;
+        struct sockaddr_in serv_addr, from;
+        struct hostent *server;
+        char buffer[6];
+        char input[256];
+        bool _status;
+
+        string mac;
+        string hostname;
+        string magicPacket;
+
+        cin >> hostname;
+        
+        for(int i = 0; i < ParticipantsInfo.size(); i++)
+        {
+            if(hostname == ParticipantsInfo.at(i).getHostname())
+            {
+                serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo.at(i).getIp().c_str());
+                mac = ParticipantsInfo.at(i).getMac();
+            }
+        }
+        
+        magicPacket = createMagicPacket(mac);
+
+        if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+            printf("ERROR opening socket");
+
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons(PORT2);
+        bzero(&(serv_addr.sin_zero), 8);
+        
+    
+        n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
+        if (n < 0)
+            printf("ERROR sendto");
+
+        close(sockfd);
+            
+    }
+
+
+    void receiveWoL()
+    {
+        int sockfd, n;
+        socklen_t clilen;
+        struct sockaddr_in serv_addr, cli_addr;
+        char buf[102];
+        char input[256];
+        
+
+        string mac;
+
+        if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+            printf("ERROR opening socket");
+
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons(PORT2);
+        serv_addr.sin_addr.s_addr = INADDR_ANY;
+        bzero(&(serv_addr.sin_zero), 8);
+
+        if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
+            printf("ERROR on binding");
+
+        clilen = sizeof(struct sockaddr_in);
+
+        while (1)
+        {
+            n = recvfrom(sockfd, buf, 102, 0, (struct sockaddr *)&cli_addr, &clilen);
+            if (n < 0)
+                printf("ERROR on recvfrom");
+
+            //como resolver o status?
+            string status = "Awaken";
+
+            n = sendto(sockfd, status.c_str(), 6, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
+            if (n < 0)
+                printf("ERROR on sendto");
+
+            bzero(buf, 12);
+
+            sleep(2);
+        }
+        close(sockfd);
+    }
+
