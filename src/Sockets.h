@@ -54,15 +54,13 @@ void discoveryManagerSend();
 
 void discoveryManagerReceive();
 
-void discoveryParticipantSend();
-
-void discoveryParticipantReceive();
+void discoveryParticipantReceiveAndSend();
 
 void interfaceManagerSend();
 
 void interfaceManagerReceive();
 
-void interfaceParticipantSend();
+void interfaceParticipantSend(); //provavel q n precise do participantsend ou do participantreceive
 
 void interfaceParticipantReceive();
 
