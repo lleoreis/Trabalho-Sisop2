@@ -16,6 +16,7 @@ using namespace std;
 
         string mac;
         int position;
+
         for(position = 0;position < ParticipantsInfo->size();position++)
         {
             if (!strcmp(participant.getIp().c_str(),ParticipantsInfo->at(position).getIp().c_str()))
@@ -25,32 +26,16 @@ using namespace std;
         if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
             printf("ERROR opening socket");
 
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(PORT3);
-        bzero(&(serv_addr.sin_zero), 8);
-        
+        string ipToSend(ParticipantsInfo->at(position).getIp());
     
         while (1)
         {
-                serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo->at(position).getIp().c_str());
-                n = sendto(sockfd, "send status", 12, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
-                if (n < 0)
-                    printf("ERROR sendto");
+                //thread de envio
+                monitoringManagerSend(ipToSend,sockfd);
 
-                length = sizeof(struct sockaddr_in);
-                n = recvfrom(sockfd, buffer, 6, 0, (struct sockaddr *)&from, &length);
-                if (n < 0)
-                {
-                    printf("ERROR recvfrom");
-                    strcpy(buffer,"Asleep");
-                }
-                if(strcmp(buffer,"Awaken"))
-                    _status = true;
-                else 
-                    _status = false;
-
-                if(ParticipantsInfo->at(position).getStatus() != _status)
-                    ParticipantsInfo->at(position).setStatus(_status);
+                //thread de recebimento
+                monitoringManagerReceive(sockfd,position,ParticipantsInfo);
+ 
         }
         close(sockfd);
     }
@@ -61,16 +46,13 @@ using namespace std;
         socklen_t clilen;
         struct sockaddr_in serv_addr, cli_addr;
         char buf[12];
-        char input[256];
-        
 
-        string mac;
 
         if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
             printf("ERROR opening socket");
 
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(PORT3);
+        serv_addr.sin_port = htons(PORTMONITORING);
         serv_addr.sin_addr.s_addr = INADDR_ANY;
         bzero(&(serv_addr.sin_zero), 8);
 
@@ -81,18 +63,8 @@ using namespace std;
 
         while (1)
         {
-            n = recvfrom(sockfd, buf, 12, 0, (struct sockaddr *)&cli_addr, &clilen);
-            if (n < 0)
-                printf("ERROR on recvfrom");
-
-
-            n = sendto(sockfd,"Awaken", 6, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
-            if (n < 0)
-                printf("ERROR on sendto");
-
-            bzero(buf, 12);
-
-            sleep(2);
+            //thread
+            monitoringParticipantReceiveAndSend(sockfd);
         }
         close(sockfd);
     }

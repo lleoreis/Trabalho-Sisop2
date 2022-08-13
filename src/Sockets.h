@@ -37,3 +37,34 @@
 #include <unistd.h>
 #include "Participant.h"
 
+#define PORTMANAGER 4000
+#define PORTMONITORING 4001
+#define PORTINTERFACE 4002
+
+#ifndef __Sockets__
+#define __Sockets__
+
+void monitoringManagerSend(string,int &);
+
+void monitoringManagerReceive(int &,int &,vector<ParticipantInfo> *);
+
+void monitoringParticipantReceiveAndSend(int &);
+
+void discoveryManagerSend();
+
+void discoveryManagerReceive();
+
+void discoveryParticipantSend();
+
+void discoveryParticipantReceive();
+
+void interfaceManagerSend();
+
+void interfaceManagerReceive();
+
+void interfaceParticipantSend();
+
+void interfaceParticipantReceive();
+
+
+#endif 
