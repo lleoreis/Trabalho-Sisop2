@@ -16,7 +16,7 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
         printf("ERROR sendto");
 }
 
-void monitoringManagerReceive(int &sockfd,int &position,vector<ParticipantInfo> *ParticipantsInfo)
+void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> *ParticipantsInfo)
 {
     int n;
     unsigned int length;
@@ -53,18 +53,37 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     if (n < 0)
         printf("ERROR on recvfrom");
 
-    n = sendto(sockfd,"Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
+    n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
 }
 
-void discoveryManagerSend();
+void discoveryManagerSend(int &sockfd, struct sockaddr_in cli_addr)
+{
+    int n = sendto(sockfd, "Got your message\n", 17, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
+    if (n < 0)
+        printf("ERROR on sendto");
+}
 
-void discoveryManagerReceive();
+void discoveryManagerReceive(int &sockfd, struct sockaddr_in cli_addr, socklen_t clilen,  char buf[256])
+{
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
+    if (n < 0)
+        printf("ERROR on recvfrom");
+    printf("Received a datagram: %s\n", buf);
+}
 
-void discoveryParticipantSend();
+void discoveryParticipantReceiveAndSend(int &sockfd, struct sockaddr_in cli_addr, socklen_t clilen,  char buf[256])
+{
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
+    if (n < 0)
+        printf("ERROR on recvfrom");
+    printf("Received a datagram: %s\n", buf);
 
-void discoveryParticipantReceive();
+    n = sendto(sockfd, "Got your message\n", 17, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr), char buf[256]);
+    if (n < 0)
+        printf("ERROR on sendto");
+}
 
 void interfaceManagerSend();
 
