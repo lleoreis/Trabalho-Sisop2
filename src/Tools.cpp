@@ -4,10 +4,10 @@
 #include <stdexcept>
 #include <string>
 #include <array>
-
+#include "tools.h"
 using namespace std;
 
-string getMacAddress(char* placaRede) {
+string Tools::getMacAddress(char* placaRede) {
     array<char, 128> buffer;
     
     string result,mac,hostnameMacAddress,hostname;

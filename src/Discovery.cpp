@@ -21,21 +21,19 @@
 #include <fcntl.h>
 #include <net/if.h>
 
-#include "Participant.h"
-#include "mac.cpp"
+#include "Discovery.h"
+#include "tools.h"
 
 #define PORT 4000
 
 using namespace std;
 
 
-class Manager
-{
 
-public:
+//MANAGER
     vector<ParticipantInfo> ParticipantsInfo;
     
-    void showParticipants(vector<ParticipantInfo> ParticipantsInfo)
+    void Manager::showParticipants(vector<ParticipantInfo> ParticipantsInfo)
     {
         cout << "Hostname "
                   << "Ip Address "
@@ -53,7 +51,7 @@ public:
         }
     }
 
-    bool verifySameIp(string newIp,vector<ParticipantInfo> ParticipantsInfo)
+    bool Manager::verifySameIp(string newIp,vector<ParticipantInfo> ParticipantsInfo)
         {
             for (int i = 0; i < ParticipantsInfo.size(); i++)
             {
@@ -66,9 +64,9 @@ public:
             return false;
         }
 
-    void broadcast(char* placaRede)
+    void Manager::broadcast(char* placaRede)
     {
-
+        Tools tools;
         int sockfd, n;
         unsigned int length;
         struct sockaddr_in serv_addr, from;
@@ -78,7 +76,7 @@ public:
         int broadcastPermission = 1;
         char *broadcastIP;
 
-        string  mac = getMacAddress(placaRede);
+        string  mac = tools.getMacAddress(placaRede);
 
         broadcastIP = "255.255.255.255";
         if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -119,12 +117,10 @@ public:
         }
         close(sockfd);
     }
-};
 
-class Participant
-{
-public:
-    void showManager(string hostname, string ip, string mac)
+
+//PARTICIPANT
+    void Participant::showManager(string hostname, string ip, string mac)
     {
         cout << "Hostname"
                   << "Ip Address"
@@ -133,8 +129,9 @@ public:
         cout << ip << " | ";
         cout << mac << " |";
     }
-    void receive(char* placaRede)
+    void Participant::receive(char* placaRede)
     {
+        Tools tools;
         int sockfd, n;
         socklen_t clilen;
         struct sockaddr_in serv_addr, cli_addr, from;
@@ -157,7 +154,7 @@ public:
         clilen = sizeof(struct sockaddr_in);
 
         // Pega o hostname e macaddress 
-        string mac_hostname = getMacAddress(placaRede);
+        string mac_hostname = tools.getMacAddress(placaRede);
         
         
         while (1)
@@ -182,32 +179,6 @@ public:
 
         }
     }
-};
 
-int main(int argc, char *argv[])
-{
-    Manager managerPC;
-    Participant participantPC;
 
-    switch (argc)
-    {
-    case 2:
-        cout << "running as participant\n";
-        participantPC.receive(argv[1]);
-        cout << "chegou";
-        break;
-    case 3:
-        cout << argv[1];
-        if(!strcmp(argv[1],"manager"))
-        {
-            cout << "running as manager\n";
-            managerPC.broadcast(argv[2]);
-        }
-        break;
-    default:
-        cout << "invalid input\n";
-        break;
-    }
 
-    return 0;
-}
