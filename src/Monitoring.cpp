@@ -100,13 +100,12 @@ using namespace std;
 
     void receiveStatusRequestPacket()
     {
-        vector<ParticipantInfo> ParticipantsInfo;
         int sockfd, n;
         struct sockaddr_in serv_addr, from;
         int sockfd, n;
         socklen_t clilen;
         struct sockaddr_in serv_addr, cli_addr;
-        char buf[6];
+        char buf[12];
         char input[256];
         
 
@@ -138,7 +137,7 @@ using namespace std;
             if (n < 0)
                 printf("ERROR on sendto");
 
-            bzero(buf, 256);
+            bzero(buf, 12);
 
             sleep(2);
         }
