@@ -1,3 +1,4 @@
+
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,6 +31,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+    vector<ParticipantInfo> ParticipantsInfo;
     Manager managerPC;
     Participant participantPC;
 
@@ -44,7 +46,7 @@ int main(int argc, char *argv[])
         if(!strcmp(argv[1],"manager"))
         {
             cout << "running as manager\n";
-            managerPC.broadcast(argv[2]);
+            managerPC.broadcast(argv[2], &ParticipantsInfo);
         }
         break;
     default:

@@ -1,3 +1,4 @@
+#pragma once
 #include <sys/types.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,9 +31,9 @@
 class Manager
 {
 public:
-    void showParticipants(vector<ParticipantInfo> ParticipantsInfo);
-    void broadcast(char *placaRede);
-    bool verifySameIp(string newIp, vector<ParticipantInfo> ParticipantsInfo);
+    void showParticipants(vector<ParticipantInfo> *ParticipantsInfo);
+    void broadcast(char *placaRede,vector<ParticipantInfo> *ParticipantsInfo);
+    bool verifySameIp(string newIp, vector<ParticipantInfo> *ParticipantsInfo);
 };
 class Participant
 {

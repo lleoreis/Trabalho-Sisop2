@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <net/if.h>
 
+
 #include "Discovery.h"
 #include "tools.h"
 
@@ -31,31 +32,31 @@ using namespace std;
 
 
 //MANAGER
-    vector<ParticipantInfo> ParticipantsInfo;
+
     
-    void Manager::showParticipants(vector<ParticipantInfo> ParticipantsInfo)
+    void Manager::showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
     {
         cout << "Hostname "
                   << "Ip Address "
                   << "Mac Address "
                   << "Status " << endl;
-        for (int i = 0; i < ParticipantsInfo.size(); i++)
+        for (int i = 0; i < ParticipantsInfo->size(); i++)
         {
-            cout << ParticipantsInfo.at(i).getHostname() << " | ";
-            cout << ParticipantsInfo.at(i).getIp() << " | ";
-            cout << ParticipantsInfo.at(i).getMac() << " | ";
-            if (ParticipantsInfo.at(i).getStatus())
+            cout << ParticipantsInfo->at(i).getHostname() << " | ";
+            cout << ParticipantsInfo->at(i).getIp() << " | ";
+            cout << ParticipantsInfo->at(i).getMac() << " | ";
+            if (ParticipantsInfo->at(i).getStatus())
                 cout << "Awaken |" << endl;
             else
                 cout << "Asleep |" << endl;
         }
     }
 
-    bool Manager::verifySameIp(string newIp,vector<ParticipantInfo> ParticipantsInfo)
+    bool Manager::verifySameIp(string newIp,vector<ParticipantInfo> *ParticipantsInfo)
         {
-            for (int i = 0; i < ParticipantsInfo.size(); i++)
+            for (int i = 0; i < ParticipantsInfo->size(); i++)
             {
-                if(!strcmp(newIp.c_str(),ParticipantsInfo.at(i).getIp().c_str()))
+                if(!strcmp(newIp.c_str(),ParticipantsInfo->at(i).getIp().c_str()))
                 {
                     return true;
                 }
@@ -64,7 +65,7 @@ using namespace std;
             return false;
         }
 
-    void Manager::broadcast(char* placaRede)
+    void Manager::broadcast(char* placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     {
         Tools tools;
         int sockfd, n;
@@ -110,7 +111,7 @@ using namespace std;
             string hostname = buffer;
             
             if(!verifySameIp(inet_ntoa(from.sin_addr),ParticipantsInfo))
-                ParticipantsInfo.push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
+                ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
             showParticipants(ParticipantsInfo);
        
             sleep(2);
