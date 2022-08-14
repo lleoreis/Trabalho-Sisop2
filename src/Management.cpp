@@ -1,5 +1,6 @@
 #include "Management.h"
 #include "Participant.h"
+
 #define PORT2 4001
 
 using namespace std;
@@ -27,7 +28,7 @@ string createMagicPacket(string macAddress)
     return buffer;
 }
 
-void sendWoL(vector<ParticipantInfo> ParticipantsInfo, string hostname)
+void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
 {
 
     int sockfd, n;
@@ -41,12 +42,12 @@ void sendWoL(vector<ParticipantInfo> ParticipantsInfo, string hostname)
     string mac;
     string magicPacket;
 
-    for (int i = 0; i < ParticipantsInfo.size(); i++)
+    for (int i = 0; i < ParticipantsInfo->size(); i++)
     {
-        if (hostname == ParticipantsInfo.at(i).getHostname())
+        if (hostname == ParticipantsInfo->at(i).getHostname())
         {
-            serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo.at(i).getIp().c_str());
-            mac = ParticipantsInfo.at(i).getMac();
+            serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo->at(i).getIp().c_str());
+            mac = ParticipantsInfo->at(i).getMac();
         }
     }
 
@@ -59,7 +60,7 @@ void sendWoL(vector<ParticipantInfo> ParticipantsInfo, string hostname)
     serv_addr.sin_port = htons(PORT2);
     bzero(&(serv_addr.sin_zero), 8);
 
-    managementManagerSend(sockfd, magicPacket, serv_addr)
+    managementManagerSend(sockfd, magicPacket, serv_addr);
 
         // n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
         // if (n < 0)

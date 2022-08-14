@@ -23,7 +23,9 @@
 #include <net/if.h>
 #include <pthread.h>
 #include "Participant.h"
+#include "Sockets.h"
 
+using namespace std;
 
 #ifndef __Discovery__
 #define __Discovery__
@@ -31,15 +33,14 @@
 class Manager
 {
 public:
-    void showParticipants(vector<ParticipantInfo> *ParticipantsInfo);
     void broadcast(char *placaRede,vector<ParticipantInfo> *ParticipantsInfo);
-    int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo);
+
 };
+
 class Participant
 {
 public:
     void receive(char *placaRede);
-    void showManager(string hostname, string ip, string mac);
 };
 
 #endif

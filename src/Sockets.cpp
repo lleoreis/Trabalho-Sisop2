@@ -1,4 +1,44 @@
 #include "Sockets.h"
+#include "Discovery.h"
+void showManager(string hostname, string ip, string mac)
+{
+    cout << "Hostname"
+         << "Ip Address"
+         << "Mac Address" << endl;
+    cout << hostname << " | ";
+    cout << ip << " | ";
+    cout << mac << " |";
+}
+
+void showParticipants(vector<ParticipantInfo> ParticipantsInfo)
+{
+    cout << "Hostname "
+         << "Ip Address "
+         << "Mac Address "
+         << "Status " << endl;
+    for (int i = 0; i < ParticipantsInfo.size(); i++)
+    {
+        cout << ParticipantsInfo.at(i).getHostname() << " | ";
+        cout << ParticipantsInfo.at(i).getIp() << " | ";
+        cout << ParticipantsInfo.at(i).getMac() << " | ";
+        if (ParticipantsInfo.at(i).getStatus())
+            cout << "Awaken |" << endl;
+        else
+            cout << "Asleep |" << endl;
+    }
+}
+
+int verifyIfIpExists(string newIp, vector<ParticipantInfo> ParticipantsInfo)
+{
+    for (int i = 0; i < ParticipantsInfo.size(); i++)
+    {
+        if (!strcmp(newIp.c_str(), ParticipantsInfo.at(i).getIp().c_str()))
+        {
+            return i + 1; // controle para posicao zero
+        }
+    }
+    return 0;
+}
 
 void monitoringManagerSend(string ipToSend, int &sockfd)
 {
@@ -65,16 +105,20 @@ void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
         printf("ERROR sendto");
 }
 
-void discoveryManagerReceive(int &sockfd, struct sockaddr_in from, vector<ParticipantInfo> ParticipantsInfo)
+void discoveryManagerReceive(int &sockfd, struct sockaddr_in from, vector<ParticipantInfo> *ParticipantsInfo)
 {
+    Manager manager;
     char buf[256];
+    unsigned int length = sizeof(struct sockaddr_in);
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         printf("ERROR recvfrom");
 
-    if(!strcmp(string(buf),"EXIT"))
+    if (!strcmp(string(buf).c_str(), "EXIT"))
     {
-        ParticipantsInfo.at(verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo)-1).erase();//controle para posicao zero
+        string str(inet_ntoa(from.sin_addr));
+        int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
+        ParticipantsInfo.erase(ParticipantsInfo.begin() + pos);
     }
     else
     {
@@ -87,15 +131,16 @@ void discoveryManagerReceive(int &sockfd, struct sockaddr_in from, vector<Partic
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
             ParticipantsInfo.push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
+            showParticipants(ParticipantsInfo);
         }
-        showParticipants(ParticipantsInfo);
     }
 }
 
 void discoveryParticipantReceiveAndSend(int &sockfd, struct sockaddr_in cli_addr, string mac_hostname)
 {
     char buf[256];
-    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr_in));
+    unsigned int length = sizeof(struct sockaddr_in);
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &length);
     if (n < 0)
         printf("ERROR on recvfrom");
 
@@ -125,7 +170,7 @@ void managementParticipantSend(int &sockfd, struct sockaddr_in serv_addr)
     int n;
     char buf[12];
 
-    n = sendto(sockfd, "EXIT", 5 0, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
+    n = sendto(sockfd, "EXIT", 5, 0, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
 }

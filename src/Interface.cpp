@@ -1,12 +1,12 @@
 #include "Interface.h"
 
 
-bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> participantInfo)
+bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> *participantInfo)
 {
     int i=0;
-    while(i < participantInfo.size())
+    while(i < participantInfo->size())
     {
-        if(!strcmp(participantInfo.at(i).getHostname), hostname)
+        if(!strcmp(participantInfo->at(i).getHostname().c_str(), hostname.c_str()))
             return true;
         i++;
     }
@@ -21,9 +21,9 @@ void readInputManager(vector<ParticipantInfo> *participantsInfo)
         string input;
         cin >> input;
 
-        if((!strcmp(input.substr(0,6),"WAKEUP")) && verifyIfHostnameExists(input.substr(6,npos), participantsInfo))
+        if((!strcmp(input.substr(0,6).c_str(),"WAKEUP")) && verifyIfHostnameExists(input.substr(6,-1), participantsInfo))
         {
-            sendWoL(participantsInfo,input.substr(6,npos));
+            sendWoL(participantsInfo,input.substr(6,-1));
         }
     }
 }
@@ -37,7 +37,7 @@ void readInputParticipant()
         string input;
         cin >> input;
 
-        if(!strcmp(input,"EXIT"))
+        if(!strcmp(input.c_str(),"EXIT"))
         {
             sendExitMessage();
         }

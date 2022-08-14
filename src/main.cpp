@@ -21,7 +21,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <net/if.h>
-#include <pthreads.h>
+//#include <pthreads.h>
 
 #include "Discovery.h"
 
@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
     vector<ParticipantInfo> ParticipantsInfo;
     Manager managerPC;
     Participant participantPC;
-    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-    pthread_t thr_participant, thr2;
+    //pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    //pthread_t thr_participant, thr2;
 
     switch (argc)
     {
@@ -46,14 +46,14 @@ int main(int argc, char *argv[])
         //tem que passar o mutex pra dentro do receive
         //dentro da thread é usar as premissas de lock e unlock
         //pthread_create(&thr_participant, NULL, participantPC.receive(argv[1]),(void *) &n1);
-        participantPC.receive(argv[1]);
+        //participantPC.receive(argv[1]);
         cout << "chegou";
         break;
     case 3:
         if(!strcmp(argv[1],"manager"))
         {
             cout << "running as manager\n";
-            managerPC.broadcast(argv[2], &ParticipantsInfo);
+           managerPC.broadcast(argv[2], &ParticipantsInfo);
         }
         break;
     default:

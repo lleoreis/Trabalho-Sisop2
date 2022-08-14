@@ -34,7 +34,7 @@ using namespace std;
                 monitoringManagerSend(ipToSend,sockfd);
 
                 //thread de recebimento
-                monitoringManagerReceive(sockfd,position,ParticipantsInfo);
+                monitoringManagerReceive(sockfd,position,*ParticipantsInfo);
  
         }
         close(sockfd);

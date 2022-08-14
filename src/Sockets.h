@@ -36,7 +36,8 @@
 #include <net/if.h>
 #include <unistd.h>
 #include "Participant.h"
-#include "Management.h"
+
+using namespace std;
 
 #define PORTMANAGER 4000
 #define PORTMONITORING 4001
@@ -44,6 +45,13 @@
 
 #ifndef __Sockets__
 #define __Sockets__
+
+void showManager(string , string, string);
+
+
+int verifyIfIpExists(string , vector<ParticipantInfo>);
+
+void showManager(string hostname, string ip, string mac);
 
 void monitoringManagerSend(string,int &);
 
@@ -62,3 +70,4 @@ void managementManagerSend(int sockfd, string magickPacket, struct sockaddr_in s
 void managementParticipantSend(int &, struct sockaddr_in);
 
 #endif 
+

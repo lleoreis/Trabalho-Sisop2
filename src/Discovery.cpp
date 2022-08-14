@@ -9,38 +9,6 @@ using namespace std;
 
 //MANAGER
 
-    
-    void Manager::showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
-    {
-        cout << "Hostname "
-                  << "Ip Address "
-                  << "Mac Address "
-                  << "Status " << endl;
-        for (int i = 0; i < ParticipantsInfo->size(); i++)
-        {
-            cout << ParticipantsInfo->at(i).getHostname() << " | ";
-            cout << ParticipantsInfo->at(i).getIp() << " | ";
-            cout << ParticipantsInfo->at(i).getMac() << " | ";
-            if (ParticipantsInfo->at(i).getStatus())
-                cout << "Awaken |" << endl;
-            else
-                cout << "Asleep |" << endl;
-        }
-    }
-
-    int Manager::verifyIfIpExists(string newIp,vector<ParticipantInfo> *ParticipantsInfo)
-        {
-            for (int i = 0; i < ParticipantsInfo->size(); i++)
-            {
-                if(!strcmp(newIp.c_str(),ParticipantsInfo->at(i).getIp().c_str()))
-                {
-                    return i+1;//controle para posicao zero
-                }
-
-            }
-            return 0;
-        }
-
     void Manager::broadcast(char* placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     {
         Tools tools;
@@ -103,15 +71,7 @@ using namespace std;
 
 
 //PARTICIPANT
-    void Participant::showManager(string hostname, string ip, string mac)
-    {
-        cout << "Hostname"
-                  << "Ip Address"
-                  << "Mac Address" << endl;
-        cout << hostname << " | ";
-        cout << ip << " | ";
-        cout << mac << " |";
-    }
+
     void Participant::receive(char* placaRede)
     {
         Tools tools;
