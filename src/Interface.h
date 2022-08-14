@@ -47,6 +47,7 @@
 
 using namespace std;
 
-void readInputManager();
-
+void readInputManager(vector<ParticipantInfo>*);
+bool verifyIfHostnameExists(string, vector<ParticipantInfo>);
+void readInputParticipant();
 #endif

@@ -118,7 +118,7 @@ void sendExitMessage()
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTMONITORING);
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_addr.s_addr = INADDR_ANY; //pegar ip do manager e colocar na struct serv_addr
     bzero(&(serv_addr.sin_zero), 8);
 
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)

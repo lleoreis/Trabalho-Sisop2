@@ -80,7 +80,7 @@ using namespace std;
             //    printf("ERROR sendto");
 
             //THREAD
-            discoveryManagerReceive(sockfd, buf, from, ParticipantsInfo);
+            discoveryManagerReceive(sockfd, from, ParticipantsInfo);
 
             /*length = sizeof(struct sockaddr_in);
             n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
@@ -143,7 +143,7 @@ using namespace std;
         while (1)
         {
             //THREAD
-            discoveryParticipantReceiveAndSend(sockfd, buf, cli_addr, mac_hostname);
+            discoveryParticipantReceiveAndSend(sockfd, cli_addr, mac_hostname);
             
             /* receive from socket */
             /*n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);

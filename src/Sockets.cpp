@@ -87,8 +87,8 @@ void discoveryManagerReceive(int &sockfd, struct sockaddr_in from, vector<Partic
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
             ParticipantsInfo.push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-            showParticipants(ParticipantsInfo);
         }
+        showParticipants(ParticipantsInfo);
     }
 }
 

@@ -21,9 +21,9 @@ void readInputManager(vector<ParticipantInfo> *participantsInfo)
         string input;
         cin >> input;
 
-        if((!strcmp(input[0],"WAKEUP")) && verifyIfHostnameExists(input[1], participantsInfo))
+        if((!strcmp(input.substr(0,6),"WAKEUP")) && verifyIfHostnameExists(input.substr(6,npos), participantsInfo))
         {
-            sendWoL(participantsInfo,input[1]);
+            sendWoL(participantsInfo,input.substr(6,npos));
         }
     }
 }
@@ -37,7 +37,7 @@ void readInputParticipant()
         string input;
         cin >> input;
 
-        if(!strcmp(input[0],"EXIT"))
+        if(!strcmp(input,"EXIT"))
         {
             sendExitMessage();
         }
