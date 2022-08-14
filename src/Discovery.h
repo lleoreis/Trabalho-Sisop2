@@ -33,7 +33,7 @@ class Manager
 public:
     void showParticipants(vector<ParticipantInfo> *ParticipantsInfo);
     void broadcast(char *placaRede,vector<ParticipantInfo> *ParticipantsInfo);
-    bool verifySameIp(string newIp, vector<ParticipantInfo> *ParticipantsInfo);
+    bool verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo);
 };
 class Participant
 {

@@ -1,119 +1,45 @@
-#include "Participant.h"
 #include "Interface.h"
 
-#define PORT2 4001
 
-using namespace std;
-
-//Arrumar a passagem da lista de participantes!!!!!!
-    string ReplaceAll(string str, const string& from, const string& to) {
-    size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length();
-    }
-    return str;
-    }
-    string createMagicPacket(string macAddress)
+bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> participantInfo)
+{
+    int i=0;
+    while(i < participantInfo.size())
     {
-        string macAddr = "\\x";
-        string buffer ("\xff\xff\xff\xff\xff\xff");
-        unsigned char packet[102];
-        macAddress = ReplaceAll(macAddress,string(":"),string("\\x"));
-        macAddr.append(macAddress);
-        for (int i = 0 ;i < 16 ; i++)
-            buffer.append(macAddr);
-
-        return buffer;
-
-
+        if(!strcmp(participantInfo.at(i).getHostname), hostname)
+            return true;
+        i++;
     }
 
-void sendWoL(vector<ParticipantInfo> ParticipantsInfo)
+    return false;
+}
+
+void readInputManager(vector<ParticipantInfo> *participantsInfo)
+{
+    while(true)
     {
-        
-        int sockfd, n;
-        unsigned int length;
-        struct sockaddr_in serv_addr, from;
-        struct hostent *server;
-        char buffer[6];
-        char input[256];
-        bool _status;
+        string input;
+        cin >> input;
 
-        string mac;
-        string hostname;
-        string magicPacket;
-
-        cin >> hostname;
-        
-        for(int i = 0; i < ParticipantsInfo.size(); i++)
+        if((!strcmp(input[0],"WAKEUP")) && verifyIfHostnameExists(input[1], participantsInfo))
         {
-            if(hostname == ParticipantsInfo.at(i).getHostname())
-            {
-                serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo.at(i).getIp().c_str());
-                mac = ParticipantsInfo.at(i).getMac();
-            }
+            sendWoL(participantsInfo,input[1]);
         }
-        
-        magicPacket = createMagicPacket(mac);
-
-        if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-            printf("ERROR opening socket");
-
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(PORT2);
-        bzero(&(serv_addr.sin_zero), 8);
-        
-    
-        n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
-        if (n < 0)
-            printf("ERROR sendto");
-
-        close(sockfd);
-            
     }
+}
+
+void readInputParticipant()
+{
 
 
-    void receiveWoL()
+    while(true)
     {
-        int sockfd, n;
-        socklen_t clilen;
-        struct sockaddr_in serv_addr, cli_addr;
-        char buf[102];
-        char input[256];
-        
+        string input;
+        cin >> input;
 
-        string mac;
-
-        if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-            printf("ERROR opening socket");
-
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(PORT2);
-        serv_addr.sin_addr.s_addr = INADDR_ANY;
-        bzero(&(serv_addr.sin_zero), 8);
-
-        if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
-            printf("ERROR on binding");
-
-        clilen = sizeof(struct sockaddr_in);
-
-        while (1)
+        if(!strcmp(input[0],"EXIT"))
         {
-            n = recvfrom(sockfd, buf, 102, 0, (struct sockaddr *)&cli_addr, &clilen);
-            if (n < 0)
-                printf("ERROR on recvfrom");
-
-
-            n = sendto(sockfd, "Acordei", 8, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
-            if (n < 0)
-                printf("ERROR on sendto");
-
-            bzero(buf, 12);
-
-            sleep(2);
+            sendExitMessage();
         }
-        close(sockfd);
     }
-
-
+}

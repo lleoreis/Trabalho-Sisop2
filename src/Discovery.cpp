@@ -1,4 +1,3 @@
-
 #include "Discovery.h"
 #include "tools.h"
 
@@ -29,17 +28,17 @@ using namespace std;
         }
     }
 
-    bool Manager::verifySameIp(string newIp,vector<ParticipantInfo> *ParticipantsInfo)
+    int Manager::verifyIfIpExists(string newIp,vector<ParticipantInfo> *ParticipantsInfo)
         {
             for (int i = 0; i < ParticipantsInfo->size(); i++)
             {
                 if(!strcmp(newIp.c_str(),ParticipantsInfo->at(i).getIp().c_str()))
                 {
-                    return true;
+                    return i+1;//controle para posicao zero
                 }
 
             }
-            return false;
+            return 0;
         }
 
     void Manager::broadcast(char* placaRede, vector<ParticipantInfo> *ParticipantsInfo)
@@ -73,12 +72,17 @@ using namespace std;
         while (1)
         {
             
-            //
-            n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
-            if (n < 0)
-                printf("ERROR sendto");
+            //THREAD
+            discoveryManagerSend(sockfd, serv_addr, mac);
 
-            length = sizeof(struct sockaddr_in);
+            //n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
+            //if (n < 0)
+            //    printf("ERROR sendto");
+
+            //THREAD
+            discoveryManagerReceive(sockfd, buf, from, ParticipantsInfo);
+
+            /*length = sizeof(struct sockaddr_in);
             n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
             if (n < 0)
                 printf("ERROR recvfrom");
@@ -89,11 +93,10 @@ using namespace std;
             buffer.erase(0,pos + 1); 
             string hostname = buffer;
             
-            if(!verifySameIp(inet_ntoa(from.sin_addr),ParticipantsInfo))
+            if(!verifyIfIpExists(inet_ntoa(from.sin_addr),ParticipantsInfo))
                 ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-            showParticipants(ParticipantsInfo);
-       
-            sleep(2);
+            showParticipants(ParticipantsInfo);*/
+
         }
         close(sockfd);
     }
@@ -139,8 +142,11 @@ using namespace std;
         
         while (1)
         {
+            //THREAD
+            discoveryParticipantReceiveAndSend(sockfd, buf, cli_addr, mac_hostname);
+            
             /* receive from socket */
-            n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
+            /*n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
             if (n < 0)
                 printf("ERROR on recvfrom");
             
@@ -155,7 +161,7 @@ using namespace std;
             n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
             if (n < 0)
                 printf("ERROR on sendto");
-            bzero(buf, 256);
+            bzero(buf, 256);*/
 
         }
     }

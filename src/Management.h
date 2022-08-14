@@ -35,30 +35,20 @@
 #include <fcntl.h>
 #include <net/if.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <sstream>
 #include "Participant.h"
-#include "Management.h"
+#include "Sockets.h"
 
-#define PORTMANAGER 4000
-#define PORTMONITORING 4001
-#define PORTMANAGEMENT 4002
 
-#ifndef __Sockets__
-#define __Sockets__
+#ifndef __Management__
+#define __Management__
 
-void monitoringManagerSend(string,int &);
+using namespace std;
 
-void monitoringManagerReceive(int &,int &,vector<ParticipantInfo>);
+string ReplaceAll(string str, const string& from, const string& to);
+string createMagicPacket(string macAddress);
+void sendWoL(vector<ParticipantInfo> ParticipantsInfo, string hostname);
+void receiveWoL();
 
-void monitoringParticipantReceiveAndSend(int &);
-
-void discoveryManagerSend(int &, struct sockaddr_in, string);
-
-void discoveryManagerReceive(int &, struct sockaddr_in, vector<ParticipantInfo>);
-
-void discoveryParticipantReceiveAndSend(int &, struct sockaddr_in, string);
-
-void managementManagerSend(int sockfd, string magickPacket, struct sockaddr_in serv_addr);
-
-void managementParticipantSend(int &, struct sockaddr_in);
-
-#endif 
+#endif

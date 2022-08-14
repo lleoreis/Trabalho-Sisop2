@@ -16,7 +16,7 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
         printf("ERROR sendto");
 }
 
-void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> *ParticipantsInfo)
+void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> ParticipantsInfo)
 {
     int n;
     unsigned int length;
@@ -37,8 +37,8 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
     else
         _status = false;
 
-    if (ParticipantsInfo->at(position).getStatus() != _status)
-        ParticipantsInfo->at(position).setStatus(_status);
+    if (ParticipantsInfo.at(position).getStatus() != _status)
+        ParticipantsInfo.at(position).setStatus(_status);
 }
 
 void monitoringParticipantReceiveAndSend(int &sockfd)
@@ -58,37 +58,74 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
         printf("ERROR on sendto");
 }
 
-void discoveryManagerSend(int &sockfd, struct sockaddr_in cli_addr)
+void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
 {
-    int n = sendto(sockfd, "Got your message\n", 17, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
+    int n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
+    if (n < 0)
+        printf("ERROR sendto");
+}
+
+void discoveryManagerReceive(int &sockfd, struct sockaddr_in from, vector<ParticipantInfo> ParticipantsInfo)
+{
+    char buf[256];
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
+    if (n < 0)
+        printf("ERROR recvfrom");
+
+    if(!strcmp(string(buf),"EXIT"))
+    {
+        ParticipantsInfo.at(verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo)-1).erase();//controle para posicao zero
+    }
+    else
+    {
+        string buffer = string(buf);
+        size_t pos = buffer.find("|");
+        string mac = buffer.substr(0, pos);
+        buffer.erase(0, pos + 1);
+        string hostname = buffer;
+
+        if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
+        {
+            ParticipantsInfo.push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
+            showParticipants(ParticipantsInfo);
+        }
+    }
+}
+
+void discoveryParticipantReceiveAndSend(int &sockfd, struct sockaddr_in cli_addr, string mac_hostname)
+{
+    char buf[256];
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr_in));
+    if (n < 0)
+        printf("ERROR on recvfrom");
+
+    string buffer = string(buf);
+    size_t pos = buffer.find("|");
+    string mac = buffer.substr(0, pos);
+    buffer.erase(0, pos + 1);
+    string hostname = buffer;
+
+    showManager(hostname, inet_ntoa(cli_addr.sin_addr), mac);
+
+    n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
+    if (n < 0)
+        printf("ERROR on sendto");
+    bzero(buf, 256);
+}
+
+void managementManagerSend(int &sockfd, string magicPacket, struct sockaddr_in serv_addr)
+{
+    int n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
+    if (n < 0)
+        printf("ERROR sendto");
+}
+
+void managementParticipantSend(int &sockfd, struct sockaddr_in serv_addr)
+{
+    int n;
+    char buf[12];
+
+    n = sendto(sockfd, "EXIT", 5 0, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
 }
-
-void discoveryManagerReceive(int &sockfd, struct sockaddr_in cli_addr, socklen_t clilen,  char buf[256])
-{
-    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
-    if (n < 0)
-        printf("ERROR on recvfrom");
-    printf("Received a datagram: %s\n", buf);
-}
-
-void discoveryParticipantReceiveAndSend(int &sockfd, struct sockaddr_in cli_addr, socklen_t clilen,  char buf[256])
-{
-    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
-    if (n < 0)
-        printf("ERROR on recvfrom");
-    printf("Received a datagram: %s\n", buf);
-
-    n = sendto(sockfd, "Got your message\n", 17, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr), char buf[256]);
-    if (n < 0)
-        printf("ERROR on sendto");
-}
-
-void interfaceManagerSend();
-
-void interfaceManagerReceive();
-
-void interfaceParticipantSend();
-
-void interfaceParticipantReceive();

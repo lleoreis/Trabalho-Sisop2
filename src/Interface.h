@@ -39,6 +39,7 @@
 #include <sstream>
 #include "Participant.h"
 #include "Sockets.h"
+#include "Management.h"
 
 
 #ifndef __Interface__
@@ -46,9 +47,6 @@
 
 using namespace std;
 
-string ReplaceAll(string str, const string& from, const string& to);
-string createMagicPacket(string macAddress);
-void sendWoL(vector<ParticipantInfo> ParticipantsInfo);
-void receiveWoL();
+void readInputManager();
 
 #endif
