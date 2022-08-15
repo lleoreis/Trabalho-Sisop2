@@ -61,13 +61,13 @@ void monitoringParticipantReceiveAndSend(int &);
 
 void discoveryManagerSend(int &, struct sockaddr_in, string);
 
-void discoveryManagerReceive(int &, struct sockaddr_in, vector<ParticipantInfo>);
+void discoveryManagerReceive(int &, struct sockaddr_in, vector<ParticipantInfo> ParticipantsInfo);
 
 void discoveryParticipantReceiveAndSend(int &, struct sockaddr_in, string);
 
-void managementManagerSend(int sockfd, string magickPacket, struct sockaddr_in serv_addr);
+/* void managementManagerSend(int sockfd, string magickPacket, struct sockaddr_in serv_addr);
 
 void managementParticipantSend(int &, struct sockaddr_in);
-
+ */
 #endif 
 

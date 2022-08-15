@@ -60,11 +60,11 @@ void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
     serv_addr.sin_port = htons(PORT2);
     bzero(&(serv_addr.sin_zero), 8);
 
-    managementManagerSend(sockfd, magicPacket, serv_addr);
+    //managementManagerSend(sockfd, magicPacket, serv_addr);
 
-        // n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
-        // if (n < 0)
-        //     printf("ERROR sendto");
+         n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
+        /if (n < 0)
+             printf("ERROR sendto");
 
         close(sockfd);
 }
@@ -127,10 +127,17 @@ void sendExitMessage()
 
     clilen = sizeof(struct sockaddr_in);
 
-    while (1)
+    /* while (1)
     {
-        // thread
+         thread
         managementParticipantSend(sockfd, serv_addr);
-    }
+    } */
+    // não precisa de uma thread so pra enviar uma mensagem de exit
+    int n;
+    char buf[12];
+
+    n = sendto(sockfd, "EXIT", 5, 0, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
+    if (n < 0)
+        printf("ERROR on sendto");
     close(sockfd);
 }

@@ -41,18 +41,18 @@ int main(int argc, char *argv[])
     switch (argc)
     {
     case 2:
-        cout << "running as participant\n";
+        cout << "Running as PARTICIPANT\n";
         //cria thread mas n ententi q tem q passar so um parametro ali no n1
         //tem que passar o mutex pra dentro do receive
         //dentro da thread é usar as premissas de lock e unlock
         //pthread_create(&thr_participant, NULL, participantPC.receive(argv[1]),(void *) &n1);
-        //participantPC.receive(argv[1]);
+        participantPC.receive(argv[1]);
         cout << "chegou";
         break;
     case 3:
         if(!strcmp(argv[1],"manager"))
         {
-            cout << "running as manager\n";
+            cout << "Running as MANAGER\n";
            managerPC.broadcast(argv[2], &ParticipantsInfo);
         }
         break;
