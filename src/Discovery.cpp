@@ -33,14 +33,14 @@ void Manager::broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsIn
     serv_addr.sin_port = htons(PORT);
     serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
     bzero(&(serv_addr.sin_zero), 8);
+    //[ ] Aqui já tem que criar a Thread da interface 
 
     while (1)
     {
-
-        // THREAD -> talvez n precise dessa thread
+        // não precise de thread
         discoveryManagerSend(sockfd, serv_addr, mac);
 
-        // THREAD
+        
         discoveryManagerReceive(sockfd, from, ParticipantsInfo);
         //[ ] quando tiver resposta, cria uma thread unica 
         //pra ficar monitorando o participante
@@ -81,12 +81,15 @@ void Participant::receive(char *placaRede)
 
     while (1)
     {
-        // THREAD
         sleep(5);// workaround na questao do bug
-        //[ ] Thread para ficar monitorando participante
+        
+        // uma vez descoberto n precisa mais rodar
         discoveryParticipantReceiveAndSend(sockfd, cli_addr, mac_hostname);
 
-        //[ ]Criar uma thread pra cuidar do controle do teclado
+        // [ ]THREAD MONITORING
+        receiveStatusRequestPacket();
+        // [ ]THREAD INTERFACE
+        
 
 
     }

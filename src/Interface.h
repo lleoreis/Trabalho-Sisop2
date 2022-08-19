@@ -50,4 +50,7 @@ using namespace std;
 void readInputManager(vector<ParticipantInfo>*);
 bool verifyIfHostnameExists(string, vector<ParticipantInfo>);
 void readInputParticipant();
+void showManager(string hostname, string ip, string mac);
+void showParticipants(vector<ParticipantInfo> *ParticipantsInfo);
+
 #endif

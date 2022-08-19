@@ -43,3 +43,31 @@ void readInputParticipant()
         }
     }
 }
+
+void showManager(string hostname, string ip, string mac)
+{
+    cout << "Hostname"
+         << "Ip Address"
+         << "Mac Address" << endl;
+    cout << hostname << " | ";
+    cout << ip << " | ";
+    cout << mac << " |";
+}
+
+void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
+{
+    cout << "Hostname "
+         << "Ip Address "
+         << "Mac Address "
+         << "Status " << endl;
+    for (int i = 0; i < ParticipantsInfo->size(); i++)
+    {
+        cout << ParticipantsInfo->at(i).getHostname() << " | ";
+        cout << ParticipantsInfo->at(i).getIp() << " | ";
+        cout << ParticipantsInfo->at(i).getMac() << " | ";
+        if (ParticipantsInfo->at(i).getStatus())
+            cout << "Awaken |" << endl;
+        else
+            cout << "Asleep |" << endl;
+    }
+}
