@@ -88,7 +88,7 @@ void Participant::receive(char *placaRede)
 
         // [ ]THREAD MONITORING
         receiveStatusRequestPacket();
-        // [ ]THREAD INTERFACE
+        
         
 
 

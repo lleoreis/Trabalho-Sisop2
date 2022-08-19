@@ -136,8 +136,8 @@ void discoveryParticipantReceiveAndSend(int &sockfd, struct sockaddr_in cli_addr
     string hostname = buffer;
 
 
-    showManager(hostname, inet_ntoa(cli_addr.sin_addr), mac);
-
+    //showManager(hostname, inet_ntoa(cli_addr.sin_addr), mac);
+    // [ ]THREAD INTERFACE -> chama o management quando nota sinal de saida
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");

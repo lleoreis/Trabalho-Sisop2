@@ -24,6 +24,8 @@
 #include <pthread.h>
 #include "Participant.h"
 #include "Sockets.h"
+#include "Interface.h"
+
 
 using namespace std;
 
