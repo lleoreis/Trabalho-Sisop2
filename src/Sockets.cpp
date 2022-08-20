@@ -152,9 +152,7 @@ void discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         printf("ERROR on recvfrom");
-    cout << "recebeu\n"
-         << endl
-         << std::flush;
+    
 
     string buffer = string(buf);
     size_t pos = buffer.find("|");
@@ -165,9 +163,7 @@ void discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
-    cout << "enviou\n"
-         << endl
-         << std::flush;
+
 
     bzero(buf, 256);
 }
