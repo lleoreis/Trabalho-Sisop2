@@ -1,34 +1,11 @@
 #include "Sockets.h"
 #include "Discovery.h"
+#include "Monitoring.cpp"
+
+
 
 // mudar essas funções de print para tools ou management 
-void showManager(string hostname, string ip, string mac)
-{
-    cout << "Hostname"
-         << "Ip Address"
-         << "Mac Address" << endl;
-    cout << hostname << " | ";
-    cout << ip << " | ";
-    cout << mac << " |";
-}
 
-void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
-{
-    cout << "Hostname "
-         << "Ip Address "
-         << "Mac Address "
-         << "Status " << endl;
-    for (int i = 0; i < ParticipantsInfo->size(); i++)
-    {
-        cout << ParticipantsInfo->at(i).getHostname() << " | ";
-        cout << ParticipantsInfo->at(i).getIp() << " | ";
-        cout << ParticipantsInfo->at(i).getMac() << " | ";
-        if (ParticipantsInfo->at(i).getStatus())
-            cout << "Awaken |" << endl;
-        else
-            cout << "Asleep |" << endl;
-    }
-}
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {
@@ -41,7 +18,7 @@ int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
     }
     return 0;
 }
-
+/* 
 void monitoringManagerSend(string ipToSend, int &sockfd)
 {
     int n;
@@ -82,7 +59,7 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
     if (ParticipantsInfo.at(position).getStatus() != _status)
         ParticipantsInfo.at(position).setStatus(_status);
 }
-
+ 
 void monitoringParticipantReceiveAndSend(int &sockfd)
 {
     int n;
@@ -99,26 +76,53 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     if (n < 0)
         printf("ERROR on sendto");
 }
-
-void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
+*/
+void discoveryManagerSend(string mac)
 {
+    int sockfd;
+    struct sockaddr_in serv_addr;
+    int broadcastPermission = 1;
+    char *broadcastIP;
+
+    broadcastIP = "255.255.255.255";
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastPermission, sizeof(broadcastPermission)) < 0)
+    {
+        fprintf(stderr, "setsockopt error");
+        exit(1);
+    }
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORTDISCOVERY);
+    serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
+    bzero(&(serv_addr.sin_zero), 8);
     int n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
     if (n < 0)
         printf("ERROR sendto");
 }
 
-void discoveryManagerReceive(int &sockfd, struct sockaddr_in from, vector<ParticipantInfo> *ParticipantsInfo)
+void discoveryManagerReceive(vector<ParticipantInfo> *ParticipantsInfo)
 {
-    Manager manager;
+    int sockfd;
+    struct sockaddr_in from;   
     char buf[256];
     unsigned int length = sizeof(struct sockaddr_in);
+    cout << endl <<std::flush;
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    if (bind(sockfd, (struct sockaddr *)&from, sizeof(struct sockaddr)) < 0)
+         cout << "error Binding num:"<< errno << endl <<std::flush;
+
+    cout << sockfd << std::flush;
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
-        printf("ERROR recvfrom");
-
+        cout << "Erro recvfrom numero:" << n << errno << std::flush; 
+    cout << "recebeu algo?" <<std::flush;
+    
     if (!strcmp(string(buf).c_str(), "EXIT"))
     {
-        string str(inet_ntoa(from.sin_addr));
+        string str(inet_ntoa(from.sin_addr));   
         int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
         ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
     }
@@ -130,21 +134,46 @@ void discoveryManagerReceive(int &sockfd, struct sockaddr_in from, vector<Partic
         buffer.erase(0, pos + 1);
         string hostname = buffer;
 
-        if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
+        
+
+        // acho que não precisa verificar pq uma vez que o participante
+        // é descoberto, ele não vai responder mais nessa porta
+         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
             ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-            showParticipants(ParticipantsInfo);
-        }
+
+        } 
+        // [ ] CRIA THREAD DE MONITORING PARA PARTICIPANTE RECEM ADD
+        ParticipantInfo participant(ParticipantsInfo->back().getHostname(),ParticipantsInfo->back().getMac(),ParticipantsInfo->back().getIp(),ParticipantsInfo->back().getStatus());
+        //sendStatusRequestPacket(ParticipantsInfo,participant); // quais parametros passar?
+
     }
 }
-/* 
-void discoveryParticipantReceiveAndSend(int &sockfd, struct sockaddr_in cli_addr, string mac_hostname)
+ 
+void discoveryParticipantReceiveAndSend(string mac_hostname)
 {
+ 
+    int sockfd;
+    struct sockaddr_in from;   
     char buf[256];
     unsigned int length = sizeof(struct sockaddr_in);
-    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&cli_addr, &length);
+    
+    from.sin_family = AF_INET;
+    from.sin_port = htons(PORTMANAGEMENT);
+    from.sin_addr.s_addr = INADDR_ANY;
+
+
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    if (bind(sockfd, (struct sockaddr *)&from, sizeof(struct sockaddr)) < 0)
+        cout << "error bind num:"<< errno << std::flush;
+    
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         printf("ERROR on recvfrom");
+
+    cout << n << std::flush;
 
     string buffer = string(buf);
     size_t pos = buffer.find("|");
@@ -152,13 +181,15 @@ void discoveryParticipantReceiveAndSend(int &sockfd, struct sockaddr_in cli_addr
     buffer.erase(0, pos + 1);
     string hostname = buffer;
 
-    showManager(hostname, inet_ntoa(cli_addr.sin_addr), mac);
-
-    n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
+    cout << "b" << std::flush;
+    n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
+    cout << n << std::flush;
+    cout << "fim do partDisc" <<std::flush;
     bzero(buf, 256);
 }
+/*
 
 void managementManagerSend(int &sockfd, string magicPacket, struct sockaddr_in serv_addr)
 {
