@@ -61,7 +61,7 @@ void monitoringParticipantReceiveAndSend(int &);
 
 void discoveryManagerSend(int &, struct sockaddr_in, string);
 
-void discoveryManagerReceive(int &, struct sockaddr_in, vector<ParticipantInfo> *ParticipantsInfo);
+void discoveryManagerReceive(int &, vector<ParticipantInfo> *ParticipantsInfo);
 
 void discoveryParticipantReceiveAndSend(int &, struct sockaddr_in, string);
 

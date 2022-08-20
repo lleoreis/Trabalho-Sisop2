@@ -1,6 +1,6 @@
 #include "Sockets.cpp"
 #include "Tools.cpp"
-
+#include <functional>
 #define PORT 4000
 
 using namespace std;
@@ -35,20 +35,17 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
     bzero(&(serv_addr.sin_zero), 8);
 
-    while (1)
-    {
-
         // THREAD -> talvez n precise dessa thread
-        discoveryManagerSend(sockfd, serv_addr, mac);
+    
+    thread(discoveryManagerSend,sockfd, serv_addr, mac).detach();
 
         // THREAD
-        discoveryManagerReceive(sockfd, ParticipantsInfo);
+    thread (discoveryManagerReceive ,sockfd, std::cref(ParticipantsInfo)).detach();
 
         sleep(3);
         //[ ] quando tiver resposta, cria uma thread unica
         // pra ficar monitorando o participante
         
-    }
     close(sockfd);
 }
 

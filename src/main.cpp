@@ -21,6 +21,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <net/if.h>
+#include <thread>
 //#include <pthreads.h>
 
 #include "Discovery.cpp"
@@ -43,14 +44,16 @@ int main(int argc, char *argv[])
         // tem que passar o mutex pra dentro do receive
         // dentro da thread é usar as premissas de lock e unlock
         // pthread_create(&thr_participant, NULL, participantPC.receive(argv[1]),(void *) &n1);
-        receive(argv[1]);
-        cout << "chegou";
+        std::thread(receive,argv[1]).detach();
+        while(true){};
+
         break;
     case 3:
         if (!strcmp(argv[1], "manager"))
         {
             cout << "Running as MANAGER\n";
-            broadcast(argv[2], &ParticipantsInfo);
+            std::thread(broadcast,argv[2],&ParticipantsInfo).detach();
+            while(true){};  
         }
         break;
     default:

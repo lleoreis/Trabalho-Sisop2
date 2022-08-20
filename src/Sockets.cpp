@@ -5,7 +5,23 @@
 
 
 // mudar essas funções de print para tools ou management 
-
+void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
+{
+    cout << "Hostname "
+         << "Ip Address "
+         << "Mac Address "
+         << "Status " << endl;
+    for (int i = 0; i < ParticipantsInfo->size(); i++)
+    {
+        cout << ParticipantsInfo->at(i).getHostname() << " | ";
+        cout << ParticipantsInfo->at(i).getIp() << " | ";
+        cout << ParticipantsInfo->at(i).getMac() << " | ";
+        if (ParticipantsInfo->at(i).getStatus())
+            cout << "Awaken |" << endl;
+        else
+            cout << "Asleep |" << endl;
+    }
+}
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {
@@ -79,9 +95,12 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
 */
 void discoveryManagerSend(int &sockfd,struct sockaddr_in serv_addr,string mac)
 {
+
     int n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
     if (n < 0)
         printf("ERROR sendto");
+
+    cout << "enviou\n" << endl << std::flush;
 }
 
 void discoveryManagerReceive(int& sockfd,vector<ParticipantInfo> *ParticipantsInfo)
@@ -94,7 +113,7 @@ void discoveryManagerReceive(int& sockfd,vector<ParticipantInfo> *ParticipantsIn
     if (n < 0)
         cout << "Erro recvfrom numero:" << n << errno << std::flush; 
 
-    
+    cout << "recebeu\n" << endl << std::flush;
     
     if (!strcmp(string(buf).c_str(), "EXIT"))
     {
@@ -109,21 +128,24 @@ void discoveryManagerReceive(int& sockfd,vector<ParticipantInfo> *ParticipantsIn
         string mac = buffer.substr(0, pos);
         buffer.erase(0, pos + 1);
         string hostname = buffer;
+        hostname.pop_back();
 
-        
+
 
         // acho que não precisa verificar pq uma vez que o participante
         // é descoberto, ele não vai responder mais nessa porta
          if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
             ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-
+            showParticipants(ParticipantsInfo);
         } 
+        cout << "botou na lista\n" << endl << std::flush;
         // [ ] CRIA THREAD DE MONITORING PARA PARTICIPANTE RECEM ADD
         ParticipantInfo participant(ParticipantsInfo->back().getHostname(),ParticipantsInfo->back().getMac(),ParticipantsInfo->back().getIp(),ParticipantsInfo->back().getStatus());
         //sendStatusRequestPacket(ParticipantsInfo,participant); // quais parametros passar?
 
     }
+
 }
  
 void discoveryParticipantReceiveAndSend(int& sockfd,string mac_hostname)
@@ -131,10 +153,12 @@ void discoveryParticipantReceiveAndSend(int& sockfd,string mac_hostname)
     struct sockaddr_in from;   
     char buf[256];
     unsigned int length = sizeof(struct sockaddr_in);
+        
 
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         printf("ERROR on recvfrom");
+    cout << "recebeu\n" << endl << std::flush;
 
     string buffer = string(buf);
     size_t pos = buffer.find("|");
@@ -145,7 +169,7 @@ void discoveryParticipantReceiveAndSend(int& sockfd,string mac_hostname)
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
-
+    cout << "enviou\n" << endl << std::flush;
 
     bzero(buf, 256);
 }
