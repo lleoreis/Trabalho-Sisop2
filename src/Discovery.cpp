@@ -1,7 +1,6 @@
 #include "Sockets.cpp"
 #include "Tools.cpp"
 
-
 #define PORT 4000
 
 using namespace std;
@@ -30,8 +29,9 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
         fprintf(stderr, "setsockopt error");
         exit(1);
     }
+
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_port = htons(PORTDISCOVERY);
     serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
     bzero(&(serv_addr.sin_zero), 8);
 
@@ -39,13 +39,14 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     {
 
         // THREAD -> talvez n precise dessa thread
-        discoveryManagerSend(mac);
+        discoveryManagerSend(sockfd, serv_addr, mac);
 
         // THREAD
-        discoveryManagerReceive(ParticipantsInfo);
-        //[ ] quando tiver resposta, cria uma thread unica 
-        //pra ficar monitorando o participante
+        discoveryManagerReceive(sockfd, ParticipantsInfo);
 
+        sleep(3);
+        //[ ] quando tiver resposta, cria uma thread unica
+        // pra ficar monitorando o participante
         
     }
     close(sockfd);
@@ -57,7 +58,6 @@ void receive(char *placaRede)
 {
     Tools tools;
     int sockfd, n;
-    socklen_t clilen;
     struct sockaddr_in serv_addr, cli_addr, from;
     char buf[256];
     char broadcast = '1';
@@ -65,17 +65,19 @@ void receive(char *placaRede)
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
-    setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
 
+    // if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0)
+    // {
+    //     fprintf(stderr, "setsockopt error");
+    //     exit(1);
+    // }
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    bzero(&(serv_addr.sin_zero), 8);
+    serv_addr.sin_port = htons(PORTDISCOVERY);
+    serv_addr.sin_addr.s_addr = INADDR_ANY; // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
+    bzero(&(serv_addr.sin_zero), 8); 
 
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
-        printf("ERROR on binding");
-
-    clilen = sizeof(struct sockaddr_in);
+            printf("ERROR on binding");
 
     // Pega o hostname e macaddress
     string mac_hostname = tools.getMacAddress(placaRede);
@@ -85,10 +87,8 @@ void receive(char *placaRede)
         // THREAD
         // workaround na questao do bug
         //[ ] Thread para ficar monitorando participante
-        discoveryParticipantReceiveAndSend(mac_hostname);
-
+        discoveryParticipantReceiveAndSend(sockfd, mac_hostname);
+        sleep(3);
         //[ ]Criar uma thread pra cuidar do controle do teclado
-
-
     }
 }

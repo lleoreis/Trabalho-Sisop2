@@ -77,48 +77,24 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
         printf("ERROR on sendto");
 }
 */
-void discoveryManagerSend(string mac)
+void discoveryManagerSend(int &sockfd,struct sockaddr_in serv_addr,string mac)
 {
-    int sockfd;
-    struct sockaddr_in serv_addr;
-    int broadcastPermission = 1;
-    char *broadcastIP;
-
-    broadcastIP = "255.255.255.255";
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-        printf("ERROR opening socket");
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastPermission, sizeof(broadcastPermission)) < 0)
-    {
-        fprintf(stderr, "setsockopt error");
-        exit(1);
-    }
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORTDISCOVERY);
-    serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
-    bzero(&(serv_addr.sin_zero), 8);
     int n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
     if (n < 0)
         printf("ERROR sendto");
 }
 
-void discoveryManagerReceive(vector<ParticipantInfo> *ParticipantsInfo)
+void discoveryManagerReceive(int& sockfd,vector<ParticipantInfo> *ParticipantsInfo)
 {
-    int sockfd;
     struct sockaddr_in from;   
     char buf[256];
     unsigned int length = sizeof(struct sockaddr_in);
-    cout << endl <<std::flush;
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-        printf("ERROR opening socket");
 
-    if (bind(sockfd, (struct sockaddr *)&from, sizeof(struct sockaddr)) < 0)
-         cout << "error Binding num:"<< errno << endl <<std::flush;
-
-    cout << sockfd << std::flush;
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         cout << "Erro recvfrom numero:" << n << errno << std::flush; 
-    cout << "recebeu algo?" <<std::flush;
+
+    
     
     if (!strcmp(string(buf).c_str(), "EXIT"))
     {
@@ -150,30 +126,15 @@ void discoveryManagerReceive(vector<ParticipantInfo> *ParticipantsInfo)
     }
 }
  
-void discoveryParticipantReceiveAndSend(string mac_hostname)
+void discoveryParticipantReceiveAndSend(int& sockfd,string mac_hostname)
 {
- 
-    int sockfd;
     struct sockaddr_in from;   
     char buf[256];
     unsigned int length = sizeof(struct sockaddr_in);
-    
-    from.sin_family = AF_INET;
-    from.sin_port = htons(PORTMANAGEMENT);
-    from.sin_addr.s_addr = INADDR_ANY;
 
-
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-        printf("ERROR opening socket");
-
-    if (bind(sockfd, (struct sockaddr *)&from, sizeof(struct sockaddr)) < 0)
-        cout << "error bind num:"<< errno << std::flush;
-    
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         printf("ERROR on recvfrom");
-
-    cout << n << std::flush;
 
     string buffer = string(buf);
     size_t pos = buffer.find("|");
@@ -181,12 +142,11 @@ void discoveryParticipantReceiveAndSend(string mac_hostname)
     buffer.erase(0, pos + 1);
     string hostname = buffer;
 
-    cout << "b" << std::flush;
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
-    cout << n << std::flush;
-    cout << "fim do partDisc" <<std::flush;
+
+
     bzero(buf, 256);
 }
 /*
