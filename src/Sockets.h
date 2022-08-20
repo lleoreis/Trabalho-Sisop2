@@ -39,7 +39,7 @@
 
 using namespace std;
 
-#define PORTMANAGER 4000
+#define PORTDISCOVERY 4000
 #define PORTMONITORING 4001
 #define PORTMANAGEMENT 4002
 
@@ -61,7 +61,7 @@ void monitoringParticipantReceiveAndSend(int &);
 
 void discoveryManagerSend(int &, struct sockaddr_in, string);
 
-void discoveryManagerReceive(int &, struct sockaddr_in, vector<ParticipantInfo> ParticipantsInfo);
+void discoveryManagerReceive(int &, struct sockaddr_in, vector<ParticipantInfo> *ParticipantsInfo);
 
 void discoveryParticipantReceiveAndSend(int &, struct sockaddr_in, string);
 

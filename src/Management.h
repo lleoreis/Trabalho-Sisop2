@@ -1,4 +1,4 @@
-#pragma once
+
 #include "Sockets.h"
 
 #ifndef __Management__
@@ -10,5 +10,6 @@ string ReplaceAll(string str, const string& from, const string& to);
 string createMagicPacket(string macAddress);
 void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname);
 void receiveWoL();
+void sendExitMessage();
 
 #endif

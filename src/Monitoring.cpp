@@ -31,10 +31,10 @@ using namespace std;
         while (1)
         {
                 //thread de envio
-                monitoringManagerSend(ipToSend,sockfd);
+               // monitoringManagerSend(ipToSend,sockfd);
 
                 //thread de recebimento
-                monitoringManagerReceive(sockfd,position,*ParticipantsInfo);
+                //monitoringManagerReceive(sockfd,position,*ParticipantsInfo);
  
         }
         close(sockfd);
@@ -64,7 +64,7 @@ using namespace std;
         while (1)
         {
             //thread
-            monitoringParticipantReceiveAndSend(sockfd);
+            //monitoringParticipantReceiveAndSend(sockfd);
         }
         close(sockfd);
     }

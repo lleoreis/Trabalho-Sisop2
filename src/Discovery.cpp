@@ -1,5 +1,6 @@
-#include "Discovery.h"
-#include "tools.h"
+#include "Sockets.cpp"
+#include "Tools.cpp"
+
 
 #define PORT 4000
 
@@ -7,7 +8,7 @@ using namespace std;
 
 // MANAGER
 
-void Manager::broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
+void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
 {
     Tools tools;
     int sockfd, n;
@@ -38,10 +39,10 @@ void Manager::broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsIn
     {
 
         // THREAD -> talvez n precise dessa thread
-        discoveryManagerSend(sockfd, serv_addr, mac);
+        discoveryManagerSend(mac);
 
         // THREAD
-        discoveryManagerReceive(sockfd, from, ParticipantsInfo);
+        discoveryManagerReceive(ParticipantsInfo);
         //[ ] quando tiver resposta, cria uma thread unica 
         //pra ficar monitorando o participante
 
@@ -52,7 +53,7 @@ void Manager::broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsIn
 
 // PARTICIPANT
 
-void Participant::receive(char *placaRede)
+void receive(char *placaRede)
 {
     Tools tools;
     int sockfd, n;
@@ -82,9 +83,9 @@ void Participant::receive(char *placaRede)
     while (1)
     {
         // THREAD
-        sleep(5);// workaround na questao do bug
+        // workaround na questao do bug
         //[ ] Thread para ficar monitorando participante
-        discoveryParticipantReceiveAndSend(sockfd, cli_addr, mac_hostname);
+        discoveryParticipantReceiveAndSend(mac_hostname);
 
         //[ ]Criar uma thread pra cuidar do controle do teclado
 

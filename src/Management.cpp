@@ -62,8 +62,8 @@ void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
 
     //managementManagerSend(sockfd, magicPacket, serv_addr);
 
-         n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
-        /if (n < 0)
+        n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
+        if (n < 0)
              printf("ERROR sendto");
 
         close(sockfd);

@@ -1,6 +1,7 @@
 #include "Interface.h"
 
 
+
 bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> *participantInfo)
 {
     int i=0;

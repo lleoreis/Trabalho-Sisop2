@@ -42,6 +42,7 @@
 #include "Management.h"
 
 
+
 #ifndef __Interface__
 #define __Interface__
 
@@ -50,4 +51,5 @@ using namespace std;
 void readInputManager(vector<ParticipantInfo>*);
 bool verifyIfHostnameExists(string, vector<ParticipantInfo>);
 void readInputParticipant();
+
 #endif

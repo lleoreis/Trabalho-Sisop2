@@ -30,17 +30,9 @@ using namespace std;
 #ifndef __Discovery__
 #define __Discovery__
 
-class Manager
-{
-public:
+
     void broadcast(char *placaRede,vector<ParticipantInfo> *ParticipantsInfo);
-
-};
-
-class Participant
-{
-public:
     void receive(char *placaRede);
-};
+
 
 #endif
