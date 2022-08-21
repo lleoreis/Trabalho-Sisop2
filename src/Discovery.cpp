@@ -35,24 +35,20 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
     bzero(&(serv_addr.sin_zero), 8);
 
-        // THREAD -> talvez n precise dessa thread
-    
-    thread(discoveryManagerSend,std::ref(sockfd), serv_addr, mac).detach();
+    // THREAD -> talvez n precise dessa thread
 
-        // THREAD
+    thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac).detach();
+
+    // THREAD
     while (true)
     {
-       discoveryManagerReceive(sockfd,ParticipantsInfo);
-    //    showParticipants(ParticipantsInfo);
-       
+        discoveryManagerReceive(sockfd, ParticipantsInfo);
+        //    showParticipants(ParticipantsInfo);
     }
-    
-    
 
-        
-        //[ ] quando tiver resposta, cria uma thread unica
-        // pra ficar monitorando o participante
-        
+    //[ ] quando tiver resposta, cria uma thread unica
+    // pra ficar monitorando o participante
+
     close(sockfd);
 }
 
@@ -78,21 +74,21 @@ void receive(char *placaRede)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTDISCOVERY);
     serv_addr.sin_addr.s_addr = INADDR_ANY; // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
-    bzero(&(serv_addr.sin_zero), 8); 
+    bzero(&(serv_addr.sin_zero), 8);
 
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
-            printf("ERROR on binding");
+        printf("ERROR on binding");
 
     // Pega o hostname e macaddress
     string mac_hostname = tools.getMacAddress(placaRede);
 
-    while (1)
+    int flag_monitoring = 1;
+    while (flag_monitoring)
     {
-        // THREAD
-        // workaround na questao do bug
-        //[ ] Thread para ficar monitorando participante
-        discoveryParticipantReceiveAndSend(sockfd, mac_hostname);
-        sleep(3);
-        //[ ]Criar uma thread pra cuidar do controle do teclado
+        flag_monitoring = discoveryParticipantReceiveAndSend(sockfd, mac_hostname);
     }
+
+    receiveStatusRequestPacket();
+    
+    
 }

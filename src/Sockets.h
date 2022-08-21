@@ -63,7 +63,7 @@ void discoveryManagerSend(int &, struct sockaddr_in, string);
 
 void discoveryManagerReceive(int &, vector<ParticipantInfo> *ParticipantsInfo);
 
-void discoveryParticipantReceiveAndSend(int &, struct sockaddr_in, string);
+int discoveryParticipantReceiveAndSend(int &, string);
 
 /* void managementManagerSend(int sockfd, string magickPacket, struct sockaddr_in serv_addr);
 

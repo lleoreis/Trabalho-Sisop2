@@ -28,10 +28,11 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
 
     string ipToSend(ParticipantsInfo->at(position).getIp());
 
+    cout << ipToSend <<flush << endl;
     while (1)
     {
         monitoringManagerSend(ipToSend, sockfd);
-        sleep(3);
+        sleep(1);
         monitoringManagerReceive(sockfd, position, *ParticipantsInfo);
         
     }
@@ -60,8 +61,8 @@ void receiveStatusRequestPacket()
 
     while (1)
     {
-        // thread
-        // monitoringParticipantReceiveAndSend(sockfd);
+        // thread talvez
+        monitoringParticipantReceiveAndSend(sockfd);
     }
     close(sockfd);
 }

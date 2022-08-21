@@ -35,22 +35,27 @@ int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 
 void monitoringManagerSend(string ipToSend, int &sockfd)
 {
+    
     int n;
     struct sockaddr_in serv_addr;
     bool _status;
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTMONITORING);
-    bzero(&(serv_addr.sin_zero), 8);
     serv_addr.sin_addr.s_addr = inet_addr(ipToSend.c_str());
-
+  //  bzero(&(serv_addr.sin_zero), 8);
+    
     n = sendto(sockfd, "send status", 12, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
     if (n < 0)
         printf("ERROR sendto");
+
+    cout << n << flush;
+    cout << ntohs(serv_addr.sin_port) << flush;
 }
 
 void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> ParticipantsInfo)
 {
+    
     int n;
     unsigned int length;
     char buffer[7];
@@ -76,6 +81,8 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 
 void monitoringParticipantReceiveAndSend(int &sockfd)
 {
+    //cout << "entrou no monpart" << flush;
+
     int n;
     socklen_t clilen;
     struct sockaddr_in cli_addr;
@@ -86,9 +93,13 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     if (n < 0)
         printf("ERROR on recvfrom");
 
+    cout << "recebeu: "<< n << endl << buf << flush <<endl;
     n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
+
+    cout << "enviou: " << n << flush<<endl;
+    
 }
 
 void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
@@ -142,7 +153,7 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
     }
 }
 
-void discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
+int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
 {
     struct sockaddr_in from;
     char buf[256];
@@ -165,6 +176,7 @@ void discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
 
 
     bzero(buf, 256);
+    return 0;
 }
 /*
 
