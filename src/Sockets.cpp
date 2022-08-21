@@ -32,7 +32,7 @@ int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
     }
     return 0;
 }
-/*
+
 void monitoringManagerSend(string ipToSend, int &sockfd)
 {
     int n;
@@ -53,13 +53,13 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 {
     int n;
     unsigned int length;
-    char buffer[6];
+    char buffer[7];
     struct sockaddr_in from;
     bool _status;
 
     length = sizeof(struct sockaddr_in);
 
-    n = recvfrom(sockfd, buffer, 6, 0, (struct sockaddr *)&from, &length);
+    n = recvfrom(sockfd, buffer, 7, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
     {
         printf("ERROR recvfrom");
@@ -90,7 +90,7 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     if (n < 0)
         printf("ERROR on sendto");
 }
-*/
+
 void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
 {
     while (true)
@@ -132,11 +132,10 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
             ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-            showParticipants(ParticipantsInfo);
+            ParticipantInfo part = ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr),true);
+            thread(sendStatusRequestPacket,ref(ParticipantsInfo),part).detach();
         }
-        cout << "botou na lista\n"
-             << endl
-             << std::flush;
+
         // [ ] CRIA THREAD DE MONITORING PARA PARTICIPANTE RECEM ADD
         ParticipantInfo participant(ParticipantsInfo->back().getHostname(), ParticipantsInfo->back().getMac(), ParticipantsInfo->back().getIp(), ParticipantsInfo->back().getStatus());
         // sendStatusRequestPacket(ParticipantsInfo,participant); // quais parametros passar?

@@ -43,7 +43,7 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     while (true)
     {
        discoveryManagerReceive(sockfd,ParticipantsInfo);
-       showParticipants(ParticipantsInfo);
+    //    showParticipants(ParticipantsInfo);
        
     }
     
