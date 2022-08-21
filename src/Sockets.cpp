@@ -2,6 +2,7 @@
 #include "Discovery.h"
 #include "Monitoring.cpp"
 
+
 // mudar essas funções de print para tools ou management
 void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
 {
@@ -35,7 +36,7 @@ int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 
 void monitoringManagerSend(string ipToSend, int &sockfd)
 {
-    
+
     int n;
     struct sockaddr_in serv_addr;
     bool _status;
@@ -43,19 +44,16 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTMONITORING);
     serv_addr.sin_addr.s_addr = inet_addr(ipToSend.c_str());
-  //  bzero(&(serv_addr.sin_zero), 8);
-    
+    //  bzero(&(serv_addr.sin_zero), 8);
+
     n = sendto(sockfd, "send status", 12, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
     if (n < 0)
         printf("ERROR sendto");
-
-    cout << n << flush;
-    cout << ntohs(serv_addr.sin_port) << flush;
 }
 
 void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> ParticipantsInfo)
 {
-    
+
     int n;
     unsigned int length;
     char buffer[7];
@@ -64,24 +62,30 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 
     length = sizeof(struct sockaddr_in);
 
-    n = recvfrom(sockfd, buffer, 7, 0, (struct sockaddr *)&from, &length);
+    n = recvfrom(sockfd, buffer, 7, MSG_DONTWAIT, (struct sockaddr *)&from, &length);
     if (n < 0)
     {
-        printf("ERROR recvfrom");
         strcpy(buffer, "Asleep");
     }
-    if (strcmp(buffer, "Awaken"))
+    string buffer_string = buffer;
+    cout << buffer << endl << flush;
+
+    if (strcmp(buffer_string.c_str(), "Awaken")==0)
         _status = true;
     else
         _status = false;
 
     if (ParticipantsInfo.at(position).getStatus() != _status)
+    {
+        cout << ParticipantsInfo.at(position).getStatus() << flush << endl;
         ParticipantsInfo.at(position).setStatus(_status);
+        cout << ParticipantsInfo.at(position).getStatus() << flush << endl;
+    }
 }
 
 void monitoringParticipantReceiveAndSend(int &sockfd)
 {
-    //cout << "entrou no monpart" << flush;
+    // cout << "entrou no monpart" << flush;
 
     int n;
     socklen_t clilen;
@@ -93,13 +97,13 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     if (n < 0)
         printf("ERROR on recvfrom");
 
-    cout << "recebeu: "<< n << endl << buf << flush <<endl;
+    cout << "recebeu: " << n << endl
+         << buf << flush << endl;
     n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
 
-    cout << "enviou: " << n << flush<<endl;
-    
+    cout << "enviou: " << n << flush << endl;
 }
 
 void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
@@ -143,12 +147,12 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
             ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-            ParticipantInfo part = ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr),true);
-            thread(sendStatusRequestPacket,ref(ParticipantsInfo),part).detach();
+            ParticipantInfo part = ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), false);
+            thread(sendStatusRequestPacket, ref(ParticipantsInfo), part).detach();
         }
 
         // [ ] CRIA THREAD DE MONITORING PARA PARTICIPANTE RECEM ADD
-        ParticipantInfo participant(ParticipantsInfo->back().getHostname(), ParticipantsInfo->back().getMac(), ParticipantsInfo->back().getIp(), ParticipantsInfo->back().getStatus());
+        //ParticipantInfo participant(ParticipantsInfo->back().getHostname(), ParticipantsInfo->back().getMac(), ParticipantsInfo->back().getIp(), ParticipantsInfo->back().getStatus());
         // sendStatusRequestPacket(ParticipantsInfo,participant); // quais parametros passar?
     }
 }
@@ -162,7 +166,6 @@ int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         printf("ERROR on recvfrom");
-    
 
     string buffer = string(buf);
     size_t pos = buffer.find("|");
@@ -173,7 +176,6 @@ int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
-
 
     bzero(buf, 256);
     return 0;
