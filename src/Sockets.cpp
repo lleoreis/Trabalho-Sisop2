@@ -4,25 +4,6 @@
 #include "Interface.cpp"
 
 
-// mudar essas funções de print para tools ou management
-void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
-{
-    cout << "Hostname "
-         << "Ip Address "
-         << "Mac Address "
-         << "Status " << endl;
-    for (int i = 0; i < ParticipantsInfo->size(); i++)
-    {
-        cout << ParticipantsInfo->at(i).getHostname() << " | ";
-        cout << ParticipantsInfo->at(i).getIp() << " | ";
-        cout << ParticipantsInfo->at(i).getMac() << " | ";
-        if (ParticipantsInfo->at(i).getStatus())
-            cout << "Awaken |" << endl;
-        else
-            cout << "Asleep |" << endl;
-    }
-}
-
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {
     for (int i = 0; i < ParticipantsInfo->size(); i++)
@@ -69,7 +50,6 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
         strcpy(buffer, "Asleep");
     }
     string buffer_string = buffer;
-    cout << buffer << endl << flush;
 
     if (strcmp(buffer_string.c_str(), "Awaken")==0)
         _status = true;
@@ -78,9 +58,7 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 
     if (ParticipantsInfo->at(position).getStatus() != _status)
     {
-        cout << ParticipantsInfo->at(position).getStatus() << flush << endl;
         ParticipantsInfo->at(position).setStatus(_status);
-        cout << ParticipantsInfo->at(position).getStatus() << flush << endl;
     }
 }
 

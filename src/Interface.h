@@ -39,7 +39,8 @@
 #include <sstream>
 #include "Participant.h"
 #include "Sockets.h"
-#include "Management.h"
+#include "Management.cpp"
+
 
 
 
@@ -51,5 +52,6 @@ using namespace std;
 void readInputManager(vector<ParticipantInfo>*);
 bool verifyIfHostnameExists(string, vector<ParticipantInfo>);
 void interfaceParticipant(string,string,string);
+void interfaceManager(vector<ParticipantInfo> *ParticipantsInfo);
 
 #endif

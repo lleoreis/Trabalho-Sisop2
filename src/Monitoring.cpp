@@ -1,6 +1,5 @@
 
 #include "Monitoring.h"
-#define PORT3 4002
 
 using namespace std;
 
@@ -30,11 +29,11 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
 
     while (1)
     {
-        cout << ParticipantsInfo->at(0).getStatus()<<endl<<flush;
+       
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
         monitoringManagerReceive(sockfd, position, ParticipantsInfo);
-        cout << ParticipantsInfo->at(0).getStatus()<<endl<<flush;
+        
         
     }
     close(sockfd);

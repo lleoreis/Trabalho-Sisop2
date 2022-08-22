@@ -38,17 +38,14 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     // THREAD -> talvez n precise dessa thread
 
     thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac).detach();
-
+    thread(interfaceManager,ref(ParticipantsInfo)).detach();
     // THREAD
     while (true)
     {
         discoveryManagerReceive(sockfd, ParticipantsInfo);
-        //    showParticipants(ParticipantsInfo);
     }
 
-    //[ ] quando tiver resposta, cria uma thread unica
-    // pra ficar monitorando o participante
-
+ 
     close(sockfd);
 }
 

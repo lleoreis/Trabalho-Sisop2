@@ -107,10 +107,9 @@ void receiveWoL()
     close(sockfd);
 }
 
-void sendExitMessage()
+void sendExitMessage(string managerip)
 {
     int sockfd, n;
-    socklen_t clilen;
     struct sockaddr_in serv_addr;
     char buf[12];
 
@@ -118,23 +117,10 @@ void sendExitMessage()
         printf("ERROR opening socket");
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORTMONITORING);
-    serv_addr.sin_addr.s_addr = INADDR_ANY; //pegar ip do manager e colocar na struct serv_addr
+    serv_addr.sin_port = htons(PORTMANAGEMENT);
+    serv_addr.sin_addr.s_addr = inet_addr(managerip.c_str()); 
     bzero(&(serv_addr.sin_zero), 8);
 
-    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
-        printf("ERROR on binding");
-
-    clilen = sizeof(struct sockaddr_in);
-
-    /* while (1)
-    {
-         thread
-        managementParticipantSend(sockfd, serv_addr);
-    } */
-    // não precisa de uma thread so pra enviar uma mensagem de exit
-    int n;
-    char buf[12];
 
     n = sendto(sockfd, "EXIT", 5, 0, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
     if (n < 0)
