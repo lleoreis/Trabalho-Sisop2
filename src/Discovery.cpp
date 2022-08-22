@@ -82,7 +82,7 @@ void receive(char *placaRede)
     {
         flag_monitoring = discoveryParticipantReceiveAndSend(sockfd, mac_hostname);
     }
-
+    
     receiveStatusRequestPacket();
     
     

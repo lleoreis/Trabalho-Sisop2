@@ -1,6 +1,7 @@
 #include "Sockets.h"
 #include "Discovery.h"
 #include "Monitoring.cpp"
+#include "Interface.cpp"
 
 
 // mudar essas funções de print para tools ou management
@@ -97,13 +98,10 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     if (n < 0)
         printf("ERROR on recvfrom");
 
-    cout << "recebeu: " << n << endl
-         << buf << flush << endl;
     n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
 
-    cout << "enviou: " << n << flush << endl;
 }
 
 void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
@@ -172,6 +170,9 @@ int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     string mac = buffer.substr(0, pos);
     buffer.erase(0, pos + 1);
     string hostname = buffer;
+
+
+    thread(interfaceParticipant, mac, hostname, inet_ntoa(from.sin_addr)).detach();
 
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)

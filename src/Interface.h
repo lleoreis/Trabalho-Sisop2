@@ -50,6 +50,6 @@ using namespace std;
 
 void readInputManager(vector<ParticipantInfo>*);
 bool verifyIfHostnameExists(string, vector<ParticipantInfo>);
-void readInputParticipant();
+void interfaceParticipant(string,string,string);
 
 #endif

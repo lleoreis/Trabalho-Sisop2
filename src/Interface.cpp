@@ -1,5 +1,5 @@
 #include "Interface.h"
-
+#include "Management.h"
 
 
 bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> *participantInfo)
@@ -24,14 +24,20 @@ void readInputManager(vector<ParticipantInfo> *participantsInfo)
 
         if((!strcmp(input.substr(0,6).c_str(),"WAKEUP")) && verifyIfHostnameExists(input.substr(6,-1), participantsInfo))
         {
-            sendWoL(participantsInfo,input.substr(6,-1));
+            //sendWoL(participantsInfo,input.substr(6,-1));
         }
     }
 }
 
-void readInputParticipant()
+void interfaceParticipant(string mac, string hostname, string ip)
 {
-
+    
+    sleep(1);
+    system("clear");
+    cout << "Manager Hostaname: " << hostname << endl;
+    cout << "Manager MAC Address: " << mac << endl;
+    cout << "Manager IP: " << ip << endl;
+    
 
     while(true)
     {
@@ -40,7 +46,7 @@ void readInputParticipant()
 
         if(!strcmp(input.c_str(),"EXIT"))
         {
-            sendExitMessage();
+            //sendExitMessage();
         }
     }
 }
