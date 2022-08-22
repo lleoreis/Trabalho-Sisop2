@@ -33,7 +33,7 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
         cout << ParticipantsInfo->at(0).getStatus()<<endl<<flush;
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
-        monitoringManagerReceive(sockfd, position, *ParticipantsInfo);
+        monitoringManagerReceive(sockfd, position, ParticipantsInfo);
         cout << ParticipantsInfo->at(0).getStatus()<<endl<<flush;
         
     }

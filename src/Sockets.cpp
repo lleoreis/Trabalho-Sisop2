@@ -51,7 +51,7 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
         printf("ERROR sendto");
 }
 
-void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> ParticipantsInfo)
+void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> *ParticipantsInfo)
 {
 
     int n;
@@ -75,11 +75,11 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
     else
         _status = false;
 
-    if (ParticipantsInfo.at(position).getStatus() != _status)
+    if (ParticipantsInfo->at(position).getStatus() != _status)
     {
-        cout << ParticipantsInfo.at(position).getStatus() << flush << endl;
-        ParticipantsInfo.at(position).setStatus(_status);
-        cout << ParticipantsInfo.at(position).getStatus() << flush << endl;
+        cout << ParticipantsInfo->at(position).getStatus() << flush << endl;
+        ParticipantsInfo->at(position).setStatus(_status);
+        cout << ParticipantsInfo->at(position).getStatus() << flush << endl;
     }
 }
 

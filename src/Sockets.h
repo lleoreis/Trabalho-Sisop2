@@ -55,7 +55,7 @@ void showManager(string hostname, string ip, string mac);
 
 void monitoringManagerSend(string,int &);
 
-void monitoringManagerReceive(int &,int &,vector<ParticipantInfo>);
+void monitoringManagerReceive(int &,int &,vector<ParticipantInfo>*);
 
 void monitoringParticipantReceiveAndSend(int &);
 
