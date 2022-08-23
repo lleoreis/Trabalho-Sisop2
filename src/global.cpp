@@ -6,13 +6,17 @@
 #define PORTMANAGEMENT 4002
 
 using namespace std;
-
 bool update = false;
 static mutex _mutex;
+bool selfkill = true;
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {
+    _mutex.unlock();
+
     _mutex.lock();
+   
+
     for (int i = 0; i < ParticipantsInfo->size(); i++)
     {
         if (!strcmp(newIp.c_str(), ParticipantsInfo->at(i).getIp().c_str()))

@@ -24,7 +24,7 @@
 
 #include "Tools.cpp"
 #include <functional>
-#include "Monitoring.cpp"
+#include "Interface.cpp"
 
 
 using namespace std;
@@ -39,7 +39,7 @@ void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
         int n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
         if (n < 0)
             printf("ERROR sendto");
-        sleep(10);
+        sleep(2);
     }
 }
 
@@ -65,18 +65,17 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
 
         // acho que não precisa verificar pq uma vez que o participante
         // é descoberto, ele não vai responder mais nessa porta
+
+
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
+
             ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
-            ParticipantInfo part = ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), false);
+            ParticipantInfo part = ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true);
             update=true;
+            thread(listenExit,ref(ParticipantsInfo)).detach();
             thread(sendStatusRequestPacket, ref(ParticipantsInfo), part).detach();
-
         }
-
-        // [ ] CRIA THREAD DE MONITORING PARA PARTICIPANTE RECEM ADD
-        //ParticipantInfo participant(ParticipantsInfo->back().getHostname(), ParticipantsInfo->back().getMac(), ParticipantsInfo->back().getIp(), ParticipantsInfo->back().getStatus());
-        // sendStatusRequestPacket(ParticipantsInfo,participant); // quais parametros passar?
     }
 }
 
@@ -144,6 +143,7 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
 
     thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac).detach();
     thread(interfaceManager,ref(ParticipantsInfo)).detach();
+    
     // THREAD
     while (true)
     {
@@ -151,7 +151,7 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     }
 
  
-    close(sockfd);
+
 }
 
 // PARTICIPANT

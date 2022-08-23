@@ -37,9 +37,6 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     vector<ParticipantInfo> ParticipantsInfo;
-    // pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-    // pthread_t thr_participant, thr2;
-
     switch (argc)
     {
     case 2:

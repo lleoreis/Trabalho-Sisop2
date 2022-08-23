@@ -1,5 +1,6 @@
 
-#include "global.cpp"
+#include "Monitoring.cpp"
+
 #include "Participant.h"
 
 #define PORT2 4001
@@ -61,13 +62,13 @@ void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
     serv_addr.sin_port = htons(PORT2);
     bzero(&(serv_addr.sin_zero), 8);
 
-    //managementManagerSend(sockfd, magicPacket, serv_addr);
+    // managementManagerSend(sockfd, magicPacket, serv_addr);
 
-        n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
-        if (n < 0)
-             printf("ERROR sendto");
+    n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
+    if (n < 0)
+        printf("ERROR sendto");
 
-        close(sockfd);
+
 }
 
 void receiveWoL()
@@ -105,7 +106,7 @@ void receiveWoL()
 
         bzero(buf, 12);
     }
-    close(sockfd);
+
 }
 
 void sendExitMessage(string managerip)
@@ -119,12 +120,52 @@ void sendExitMessage(string managerip)
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTMONITORING);
-    serv_addr.sin_addr.s_addr = inet_addr(managerip.c_str()); 
+    serv_addr.sin_addr.s_addr = inet_addr(managerip.c_str());
     bzero(&(serv_addr.sin_zero), 8);
-
 
     n = sendto(sockfd, "EXIT", 5, 0, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
-    close(sockfd);
+
+}
+void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
+{    
+    int m, sockfd;
+    char buffer[5];
+    struct sockaddr_in exit_addr;
+    unsigned int length = sizeof(struct sockaddr_in);
+
+
+    exit_addr.sin_family = AF_INET;
+    exit_addr.sin_port = htons(PORTMANAGEMENT);
+    exit_addr.sin_addr.s_addr = INADDR_ANY;
+    bzero(&(exit_addr.sin_zero), 8);
+
+    int fora = 1;
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    bind(sockfd, (struct sockaddr *)&exit_addr, sizeof(struct sockaddr));
+
+    while (selfkill)
+    {
+        m = recvfrom(sockfd, buffer, 5, MSG_DONTWAIT, (struct sockaddr *)&exit_addr, &length);
+
+
+        if (!strcmp(string(buffer).c_str(), "EXIT"))
+        {
+           
+            string str(inet_ntoa(exit_addr.sin_addr));
+            
+            int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
+            
+
+            ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
+            update = true;
+            selfkill=false;
+        }
+        //sleep(1);
+        
+    }
+
 }

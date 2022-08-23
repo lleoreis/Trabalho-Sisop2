@@ -37,7 +37,7 @@
 #include <unistd.h>
 
 #include "Participant.h"
-#include "Interface.cpp"
+#include "global.cpp"
 
 using namespace std;
 
@@ -45,15 +45,15 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
 {
 
     int n;
-    struct sockaddr_in serv_addr;
+    struct sockaddr_in exit_addr;
     bool _status;
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORTMONITORING);
-    serv_addr.sin_addr.s_addr = inet_addr(ipToSend.c_str());
-    //  bzero(&(serv_addr.sin_zero), 8);
+    exit_addr.sin_family = AF_INET;
+    exit_addr.sin_port = htons(PORTMONITORING);
+    exit_addr.sin_addr.s_addr = inet_addr(ipToSend.c_str());
+    //  bzero(&(exit_addr.sin_zero), 8);
 
-    n = sendto(sockfd, "send status", 12, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
+    n = sendto(sockfd, "send status", 12, 0, (const struct sockaddr *)&exit_addr, sizeof(struct sockaddr_in));
     if (n < 0)
         printf("ERROR sendto");
 }
@@ -61,31 +61,16 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
 void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> *ParticipantsInfo)
 {
 
-    int n;
+    int n, sockfd2, m;
     unsigned int length;
-    char buffer[7];
-    struct sockaddr_in from;
+    char buffer[7], buffer2[7];
+    struct sockaddr_in from, exit_addr;
     bool _status;
 
     length = sizeof(struct sockaddr_in);
 
     n = recvfrom(sockfd, buffer, 7, MSG_DONTWAIT, (struct sockaddr *)&from, &length);
 
-        cout<<buffer<<endl<<flush;
-        //sleep(5);
-    if (!strcmp(string(buffer).c_str(), "EXIT"))
-    {
-        cout<<"exiting participant"<<endl<<flush;
-        string str(inet_ntoa(from.sin_addr));
-        _mutex.lock();
-        int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
-        _mutex.unlock();
-        ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
-        update = true;
-    }
-
-    else
-    {
         if (n < 0)
         {
             strcpy(buffer, "Asleep");
@@ -105,7 +90,7 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
         }
         else
             _mutex.unlock();
-    }
+    
 }
 
 void monitoringParticipantReceiveAndSend(int &sockfd)
@@ -129,8 +114,8 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
 {
     int sockfd, n;
     unsigned int length;
-    struct sockaddr_in serv_addr, from;
-    struct hostent *server;
+    struct sockaddr_in exit_addr, from;
+    struct hostent *exiter;
     char buffer[6];
     bool _status;
     string mac;
@@ -149,32 +134,33 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
 
-    while (1)
+    
+   
+    while (selfkill)
     {
 
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
         monitoringManagerReceive(sockfd, position, ParticipantsInfo);
     }
-    close(sockfd);
 }
 
 void receiveStatusRequestPacket()
 {
     int sockfd, n;
     socklen_t clilen;
-    struct sockaddr_in serv_addr, cli_addr;
+    struct sockaddr_in exit_addr, cli_addr;
     char buf[12];
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORTMONITORING);
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    bzero(&(serv_addr.sin_zero), 8);
+    exit_addr.sin_family = AF_INET;
+    exit_addr.sin_port = htons(PORTMONITORING);
+    exit_addr.sin_addr.s_addr = INADDR_ANY;
+    bzero(&(exit_addr.sin_zero), 8);
 
-    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
+    if (bind(sockfd, (struct sockaddr *)&exit_addr, sizeof(struct sockaddr)) < 0)
         printf("ERROR on binding");
 
     clilen = sizeof(struct sockaddr_in);
@@ -183,5 +169,5 @@ void receiveStatusRequestPacket()
     {
         monitoringParticipantReceiveAndSend(sockfd);
     }
-    close(sockfd);
+
 }
