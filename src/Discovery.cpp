@@ -1,9 +1,139 @@
-#include "Sockets.cpp"
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string>
+#include <cstring>
+#include <netdb.h>
+#include <cstdio>
+#include <iostream>
+#include <arpa/inet.h>
+#include <memory>
+#include <stdexcept>
+#include <array>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <vector>
+#include <errno.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <net/if.h>
+
+
+
 #include "Tools.cpp"
 #include <functional>
-#define PORT 4000
+#include "Monitoring.cpp"
+
+
+
+
+
 
 using namespace std;
+
+
+int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
+{
+    _mutex.lock();
+    for (int i = 0; i < ParticipantsInfo->size(); i++)
+    {
+        if (!strcmp(newIp.c_str(), ParticipantsInfo->at(i).getIp().c_str()))
+        {
+            return i + 1; // controle para posicao zero
+        }
+    }
+    _mutex.unlock();
+    return 0;
+}
+
+void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
+{
+    while (true)
+    {
+        int n = sendto(sockfd, mac.c_str(), 32, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar endereço mac da maquina manager
+        if (n < 0)
+            printf("ERROR sendto");
+        sleep(10);
+    }
+}
+
+void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsInfo)
+{
+    struct sockaddr_in from;
+    char buf[256];
+    unsigned int length = sizeof(struct sockaddr_in);
+
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
+    if (n < 0)
+        cout << "Erro recvfrom numero:" << n << errno << std::flush;
+
+    if (!strcmp(string(buf).c_str(), "EXIT"))
+    {
+        string str(inet_ntoa(from.sin_addr));
+        _mutex.lock();
+        int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
+        _mutex.unlock();
+        ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
+        update=true;
+    }
+    else
+    {
+        string buffer = string(buf);
+        size_t pos = buffer.find("|");
+        string mac = buffer.substr(0, pos);
+        buffer.erase(0, pos + 1);
+        string hostname = buffer;
+        hostname.pop_back();
+
+        // acho que não precisa verificar pq uma vez que o participante
+        // é descoberto, ele não vai responder mais nessa porta
+        if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
+        {
+            ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
+            ParticipantInfo part = ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), false);
+            update=true;
+            thread(sendStatusRequestPacket, ref(ParticipantsInfo), part).detach();
+
+        }
+
+        // [ ] CRIA THREAD DE MONITORING PARA PARTICIPANTE RECEM ADD
+        //ParticipantInfo participant(ParticipantsInfo->back().getHostname(), ParticipantsInfo->back().getMac(), ParticipantsInfo->back().getIp(), ParticipantsInfo->back().getStatus());
+        // sendStatusRequestPacket(ParticipantsInfo,participant); // quais parametros passar?
+    }
+}
+
+int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
+{
+    struct sockaddr_in from;
+    char buf[256];
+    unsigned int length = sizeof(struct sockaddr_in);
+
+    int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
+    if (n < 0)
+        printf("ERROR on recvfrom");
+
+    string buffer = string(buf);
+    size_t pos = buffer.find("|");
+    string mac = buffer.substr(0, pos);
+    buffer.erase(0, pos + 1);
+    string hostname = buffer;
+
+
+    thread(interfaceParticipant, mac, hostname, inet_ntoa(from.sin_addr)).detach();
+
+    n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
+    if (n < 0)
+        printf("ERROR on sendto");
+
+    bzero(buf, 256);
+    return 0;
+}
+
+
+
 
 // MANAGER
 

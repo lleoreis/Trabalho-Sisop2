@@ -1,11 +1,53 @@
-#include "Interface.h"
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <string>
+#include <cstring>
+#include <netdb.h>
+#include <cstdio>
+#include <iostream>
+#include <arpa/inet.h>
+#include <memory>
+#include <stdexcept>
+#include <array>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <time.h>
+#include <vector>
+#include <iostream>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <net/if.h>
+#include <unistd.h>
+#include <sstream>
 #include <signal.h>
+
+#include "Participant.h"
+
+#include "Management.cpp"
 
 string manager_ip = "";
 void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
 {
     system("clear");
-    while(true){
+    while(update){
+
         sleep(5);
         cout << "Hostname "
          << "Ip Address "
@@ -20,7 +62,10 @@ void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
             cout << "Awaken |" << endl;
         else
             cout << "Asleep |" << endl;
-    }}
+    }
+        update=false;
+    }
+
 }
 bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> *participantInfo)
 {

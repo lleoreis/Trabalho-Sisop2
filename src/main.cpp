@@ -21,14 +21,18 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <net/if.h>
+
 #include <thread>
-//#include <pthreads.h>
+
 
 #include "Discovery.cpp"
 
 #define PORT 4000
 
 using namespace std;
+
+
+
 
 int main(int argc, char *argv[])
 {
