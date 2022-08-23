@@ -3,7 +3,7 @@
 
 #include "Participant.h"
 
-#define PORT2 4001
+#define PORT2 4004
 
 using namespace std;
 
@@ -32,7 +32,7 @@ string createMagicPacket(string macAddress)
 
 void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
 {
-
+    cout<<"entrou no envio do magic"<<endl<<flush;
     int sockfd, n;
     unsigned int length;
     struct sockaddr_in serv_addr, from;
@@ -50,10 +50,12 @@ void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
         {
             serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo->at(i).getIp().c_str());
             mac = ParticipantsInfo->at(i).getMac();
+            cout<< ParticipantsInfo->at(i).getIp().c_str()<<endl<<flush;
         }
     }
 
     magicPacket = createMagicPacket(mac);
+   
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
@@ -62,12 +64,12 @@ void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
     serv_addr.sin_port = htons(PORT2);
     bzero(&(serv_addr.sin_zero), 8);
 
-    // managementManagerSend(sockfd, magicPacket, serv_addr);
 
     n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
     if (n < 0)
         printf("ERROR sendto");
 
+    cout<<"saio do envio do magic"<<endl<<flush;
 
 }
 

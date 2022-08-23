@@ -90,12 +90,15 @@ void readInputManager(vector<ParticipantInfo> *participantsInfo)
 {
     while (true)
     {
-        string hostname;
-        cin >> hostname;
+        string command,hostname;
+        cin >> command>>hostname;
+   
+        if ((!strcmp(command.c_str(), "WAKEUP")) && verifyIfHostnameExists(hostname, participantsInfo))
+        {   
 
-        if ((!strcmp(hostname.substr(0, 6).c_str(), "WAKEUP")) && verifyIfHostnameExists(hostname.substr(6, -1), participantsInfo))
-        {
-            sendWoL(participantsInfo,hostname.substr(6,-1));
+            cout<<hostname<<endl<<flush;
+            
+            sendWoL(participantsInfo,hostname);
         }
     }
 }
