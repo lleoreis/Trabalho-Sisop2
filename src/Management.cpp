@@ -118,7 +118,7 @@ void sendExitMessage(string managerip)
         printf("ERROR opening socket");
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORTMANAGEMENT);
+    serv_addr.sin_port = htons(PORTMONITORING);
     serv_addr.sin_addr.s_addr = inet_addr(managerip.c_str()); 
     bzero(&(serv_addr.sin_zero), 8);
 

@@ -71,8 +71,11 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 
     n = recvfrom(sockfd, buffer, 7, MSG_DONTWAIT, (struct sockaddr *)&from, &length);
 
+        cout<<buffer<<endl<<flush;
+        //sleep(5);
     if (!strcmp(string(buffer).c_str(), "EXIT"))
     {
+        cout<<"exiting participant"<<endl<<flush;
         string str(inet_ntoa(from.sin_addr));
         _mutex.lock();
         int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero

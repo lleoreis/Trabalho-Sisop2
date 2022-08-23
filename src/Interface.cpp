@@ -45,10 +45,11 @@
 string manager_ip = "";
 void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
 {
-    system("clear");
+    
+   while(true)
+   { 
     while(update){
-
-        sleep(5);
+        system("clear");
         cout << "Hostname "
          << "Ip Address "
          << "Mac Address "
@@ -64,7 +65,7 @@ void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
             cout << "Asleep |" << endl;
     }
         update=false;
-    }
+    }}
 
 }
 bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> *participantInfo)
