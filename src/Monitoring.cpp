@@ -39,7 +39,6 @@
 #include "Participant.h"
 #include "Interface.cpp"
 
-
 using namespace std;
 
 void monitoringManagerSend(string ipToSend, int &sockfd)
@@ -71,26 +70,39 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
     length = sizeof(struct sockaddr_in);
 
     n = recvfrom(sockfd, buffer, 7, MSG_DONTWAIT, (struct sockaddr *)&from, &length);
-    if (n < 0)
-    {
-        strcpy(buffer, "Asleep");
-    }
-    string buffer_string = buffer;
 
-    if (strcmp(buffer_string.c_str(), "Awaken")==0)
-        _status = true;
-    else
-        _status = false;
-
-    _mutex.lock();
-    if (ParticipantsInfo->at(position).getStatus() != _status)
+    if (!strcmp(string(buffer).c_str(), "EXIT"))
     {
+        string str(inet_ntoa(from.sin_addr));
+        _mutex.lock();
+        int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
         _mutex.unlock();
-        ParticipantsInfo->at(position).setStatus(_status);
-        update=true;
+        ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
+        update = true;
     }
+
     else
-        _mutex.unlock();
+    {
+        if (n < 0)
+        {
+            strcpy(buffer, "Asleep");
+        }
+
+        if (strcmp(string(buffer).c_str(), "Awaken") == 0)
+            _status = true;
+        else
+            _status = false;
+
+        _mutex.lock();
+        if (ParticipantsInfo->at(position).getStatus() != _status)
+        {
+            _mutex.unlock();
+            ParticipantsInfo->at(position).setStatus(_status);
+            update = true;
+        }
+        else
+            _mutex.unlock();
+    }
 }
 
 void monitoringParticipantReceiveAndSend(int &sockfd)
@@ -108,9 +120,7 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
-
 }
-
 
 void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, ParticipantInfo participant)
 {
@@ -138,12 +148,10 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
 
     while (1)
     {
-       
+
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
         monitoringManagerReceive(sockfd, position, ParticipantsInfo);
-        
-        
     }
     close(sockfd);
 }

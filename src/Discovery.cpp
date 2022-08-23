@@ -22,32 +22,15 @@
 #include <net/if.h>
 
 
-
 #include "Tools.cpp"
 #include <functional>
 #include "Monitoring.cpp"
 
 
-
-
-
-
 using namespace std;
 
 
-int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
-{
-    _mutex.lock();
-    for (int i = 0; i < ParticipantsInfo->size(); i++)
-    {
-        if (!strcmp(newIp.c_str(), ParticipantsInfo->at(i).getIp().c_str()))
-        {
-            return i + 1; // controle para posicao zero
-        }
-    }
-    _mutex.unlock();
-    return 0;
-}
+
 
 void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
 {
@@ -70,15 +53,7 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
     if (n < 0)
         cout << "Erro recvfrom numero:" << n << errno << std::flush;
 
-    if (!strcmp(string(buf).c_str(), "EXIT"))
-    {
-        string str(inet_ntoa(from.sin_addr));
-        _mutex.lock();
-        int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
-        _mutex.unlock();
-        ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
-        update=true;
-    }
+    
     else
     {
         string buffer = string(buf);
