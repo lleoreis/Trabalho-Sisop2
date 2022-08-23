@@ -63,8 +63,7 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
         string hostname = buffer;
         hostname.pop_back();
 
-        // acho que não precisa verificar pq uma vez que o participante
-        // é descoberto, ele não vai responder mais nessa porta
+
 
 
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
@@ -107,10 +106,6 @@ int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
 }
 
 
-
-
-// MANAGER
-
 void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
 {
     Tools tools;
@@ -139,12 +134,11 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
     bzero(&(serv_addr.sin_zero), 8);
 
-    // THREAD -> talvez n precise dessa thread
-
+ 
     thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac).detach();
     thread(interfaceManager,ref(ParticipantsInfo)).detach();
     
-    // THREAD
+
     while (true)
     {
         discoveryManagerReceive(sockfd, ParticipantsInfo);
@@ -176,7 +170,7 @@ void receive(char *placaRede)
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
         printf("ERROR on binding");
 
-    // Pega o hostname e macaddress
+
     string mac_hostname = tools.getMacAddress(placaRede);
 
     int flag_monitoring = 1;

@@ -41,10 +41,6 @@ int main(int argc, char *argv[])
     {
     case 2:
         cout << "Running as PARTICIPANT\n";
-        // cria thread mas n ententi q tem q passar so um parametro ali no n1
-        // tem que passar o mutex pra dentro do receive
-        // dentro da thread é usar as premissas de lock e unlock
-        // pthread_create(&thr_participant, NULL, participantPC.receive(argv[1]),(void *) &n1);
         std::thread(receive,argv[1]).detach();
         while(true){};
 
