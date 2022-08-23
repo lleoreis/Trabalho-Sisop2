@@ -95,10 +95,9 @@ void readInputManager(vector<ParticipantInfo> *participantsInfo)
    
         if ((!strcmp(command.c_str(), "WAKEUP")) && verifyIfHostnameExists(hostname, participantsInfo))
         {   
-
-            cout<<hostname<<endl<<flush;
             
             sendWoL(participantsInfo,hostname);
+            update = true;
         }
     }
 }

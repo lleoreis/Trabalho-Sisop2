@@ -51,7 +51,7 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
     exit_addr.sin_family = AF_INET;
     exit_addr.sin_port = htons(PORTMONITORING);
     exit_addr.sin_addr.s_addr = inet_addr(ipToSend.c_str());
-    //  bzero(&(exit_addr.sin_zero), 8);
+
 
     n = sendto(sockfd, "send status", 12, 0, (const struct sockaddr *)&exit_addr, sizeof(struct sockaddr_in));
     if (n < 0)
