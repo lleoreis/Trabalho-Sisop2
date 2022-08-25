@@ -154,7 +154,7 @@ void sendExitMessage(string managerip)
         printf("ERROR opening socket");
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORTMONITORING);
+    serv_addr.sin_port = htons(PORTMANAGEMENT);
     serv_addr.sin_addr.s_addr = inet_addr(managerip.c_str());
     bzero(&(serv_addr.sin_zero), 8);
 
@@ -168,6 +168,8 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
     char buffer[5];
     struct sockaddr_in exit_addr;
     unsigned int length = sizeof(struct sockaddr_in);
+    int reuse =1;
+
 
     exit_addr.sin_family = AF_INET;
     exit_addr.sin_port = htons(PORTMANAGEMENT);
@@ -177,6 +179,8 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
     int fora = 1;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
+
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int));
 
     bind(sockfd, (struct sockaddr *)&exit_addr, sizeof(struct sockaddr));
 
@@ -197,4 +201,5 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
         }
 
     }
+	selfkill= true;
 }

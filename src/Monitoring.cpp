@@ -150,7 +150,8 @@ void receiveStatusRequestPacket()
     int sockfd, n;
     socklen_t clilen;
     struct sockaddr_in exit_addr, cli_addr;
-    char buf[12];
+    char buf[12]; 
+    int reuse=1;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
@@ -160,8 +161,11 @@ void receiveStatusRequestPacket()
     exit_addr.sin_addr.s_addr = INADDR_ANY;
     bzero(&(exit_addr.sin_zero), 8);
 
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int));
+
     if (bind(sockfd, (struct sockaddr *)&exit_addr, sizeof(struct sockaddr)) < 0)
         printf("ERROR on binding");
+    
 
     clilen = sizeof(struct sockaddr_in);
 
