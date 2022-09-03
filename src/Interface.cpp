@@ -45,33 +45,31 @@
 string manager_ip = "";
 void showParticipants(vector<ParticipantInfo> *ParticipantsInfo)
 {
-    int i=1;
-   while(true)
-   { 
-    
-    
-    while(update){
-        system("clear");
-        cout << "Hostname "
-         << "Ip Address "
-         << "Mac Address "
-         << "Status " << endl;
-    for (int i = 0; i < ParticipantsInfo->size(); i++)
+    int i = 1;
+    while (true)
     {
-        cout << ParticipantsInfo->at(i).getHostname() << " | ";
-        cout << ParticipantsInfo->at(i).getIp() << " | ";
-        cout << ParticipantsInfo->at(i).getMac() << " | ";
-        if (ParticipantsInfo->at(i).getStatus())
-            cout << "Awaken |" << endl;
-        else
-            cout << "Asleep |" << endl;
-    }
-        update=false;
-         sleep(1);
-    }
-   
-    }
 
+        while (update)
+        {
+            system("clear");
+            cout << "Hostname "
+                 << "Ip Address "
+                 << "Mac Address "
+                 << "Status " << endl;
+            for (int i = 0; i < ParticipantsInfo->size(); i++)
+            {
+                cout << ParticipantsInfo->at(i).getHostname() << " | ";
+                cout << ParticipantsInfo->at(i).getIp() << " | ";
+                cout << ParticipantsInfo->at(i).getMac() << " | ";
+                if (ParticipantsInfo->at(i).getStatus())
+                    cout << "Awaken |" << endl;
+                else
+                    cout << "Asleep |" << endl;
+            }
+            update = false;
+            sleep(1);
+        }
+    }
 }
 bool verifyIfHostnameExists(string hostname, vector<ParticipantInfo> *participantInfo)
 {
@@ -90,13 +88,13 @@ void readInputManager(vector<ParticipantInfo> *participantsInfo)
 {
     while (true)
     {
-        string command,hostname;
-        cin >> command>>hostname;
-   
+        string command, hostname;
+        cin >> command >> hostname;
+
         if ((!strcmp(command.c_str(), "WAKEUP")) && verifyIfHostnameExists(hostname, participantsInfo))
-        {   
-            
-            sendWoL(participantsInfo,hostname);
+        {
+
+            sendWoL(participantsInfo, hostname);
             update = true;
         }
     }
@@ -125,8 +123,7 @@ void interfaceParticipant(string mac, string hostname, string ip)
         string input;
         cin >> input;
 
-
-        if ((!strcmp(input.c_str(), "EXIT"))||cin.eof())
+        if ((!strcmp(input.c_str(), "EXIT")) || cin.eof())
         {
             cout << "Exiting..." << endl
                  << flush;
@@ -135,9 +132,10 @@ void interfaceParticipant(string mac, string hostname, string ip)
         }
     }
 }
-void interfaceManager(vector<ParticipantInfo> *ParticipantsInfo){
+void interfaceManager(vector<ParticipantInfo> *ParticipantsInfo)
+{
 
-    thread(readInputManager,ref(ParticipantsInfo)).detach();
+    thread(readInputManager, ref(ParticipantsInfo)).detach();
 
     showParticipants(ParticipantsInfo);
 }

@@ -58,7 +58,7 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
         printf("ERROR sendto");
 }
 
-void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> *ParticipantsInfo)
+void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo> *ParticipantsInfo, string ipToSend)
 {
 
     int n, sockfd2, m;
@@ -87,6 +87,8 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
             _mutex.unlock();
             ParticipantsInfo->at(position).setStatus(_status);
             update = true;
+            ParticipantInfo part = ParticipantsInfo->at(position);
+            monitoringManagerSendParticipant(sockfd, part, ipToSend, false); // update no status do participant
         }
         else
             _mutex.unlock();
@@ -128,20 +130,18 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
             break;
     }
     string ipToSend(ParticipantsInfo->at(position).getIp());
-
     _mutex.unlock();
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-        printf("ERROR opening socket");
+        printf("ERROR opening socket");    
 
     
-   
+
     while (selfkill)
     {
-
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
-        monitoringManagerReceive(sockfd, position, ParticipantsInfo);
+        monitoringManagerReceive(sockfd, position, ParticipantsInfo, ipToSend);
     }
 }
 
@@ -173,5 +173,22 @@ void receiveStatusRequestPacket()
     {
         monitoringParticipantReceiveAndSend(sockfd);
     }
+}
 
+void monitoringManagerSendParticipant(int &sockfd, ParticipantInfo part, string ipToSend, bool remove)
+{
+        string partString;
+
+        if(remove)
+            partString = (part.getHostname() +","+ part.getIp() +","+ part.getMac() +",Remove");
+
+        else if(part.getStatus())
+            partString = (part.getHostname() +","+ part.getIp() +","+ part.getMac() +",Awaken");
+
+        else
+            partString = (part.getHostname() +","+ part.getIp() +","+ part.getMac() +",Asleep");
+
+        int n = sendto(sockfd, partString.c_str(), sizeof(partString), 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); // enviar dados do participant novo
+        if (n < 0)
+            printf("ERROR sendto");
 }

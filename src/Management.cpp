@@ -110,40 +110,6 @@ void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
 
 }
 
-void receiveWoL()
-{
-    int sockfd, n;
-    socklen_t clilen;
-    struct sockaddr_in serv_addr, cli_addr;
-    char buf[102];
-    char input[256];
-
-    string mac;
-
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-        printf("ERROR opening socket");
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT2);
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    bzero(&(serv_addr.sin_zero), 8);
-
-    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
-        printf("ERROR on binding");
-
-    clilen = sizeof(struct sockaddr_in);
-
-    while (1)
-    {
-        n = recvfrom(sockfd, buf, 102, 0, (struct sockaddr *)&cli_addr, &clilen);
-        if (n < 0)
-            printf("ERROR on recvfrom");
-
-
-        bzero(buf, 12);
-    }
-}
-
 void sendExitMessage(string managerip)
 {
     int sockfd, n;

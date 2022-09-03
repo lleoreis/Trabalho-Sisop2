@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
         cout << "Running as PARTICIPANT\n";
         std::thread(receive,argv[1]).detach();
         while(true){};
-
+        //participantFlag=true;
+        //initiate(argv[1]);      
         break;
     case 3:
         if (!strcmp(argv[1], "manager"))
@@ -51,6 +52,8 @@ int main(int argc, char *argv[])
             cout << "Running as MANAGER\n";
             std::thread(broadcast,argv[2],&ParticipantsInfo).detach();
             while(true){};  
+            //managerFlag=true;
+            //initiate(argv[2]);
         }
         break;
     default:

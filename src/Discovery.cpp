@@ -26,11 +26,7 @@
 #include <functional>
 #include "Interface.cpp"
 
-
 using namespace std;
-
-
-
 
 void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
 {
@@ -52,8 +48,6 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
     int n = recvfrom(sockfd, buf, 256, 0, (struct sockaddr *)&from, &length);
     if (n < 0)
         cout << "Erro recvfrom numero:" << n << errno << std::flush;
-
-    
     else
     {
         string buffer = string(buf);
@@ -62,10 +56,7 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
         buffer.erase(0, pos + 1);
         string hostname = buffer;
         hostname.pop_back();
-
-
-
-
+        
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
 
@@ -94,7 +85,6 @@ int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     buffer.erase(0, pos + 1);
     string hostname = buffer;
 
-
     thread(interfaceParticipant, mac, hostname, inet_ntoa(from.sin_addr)).detach();
 
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
@@ -119,8 +109,8 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     char *broadcastIP;
 
     string mac = tools.getMacAddress(placaRede);
-
     broadcastIP = "255.255.255.255";
+
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
     if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastPermission, sizeof(broadcastPermission)) < 0)
@@ -133,22 +123,15 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     serv_addr.sin_port = htons(PORTDISCOVERY);
     serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
     bzero(&(serv_addr.sin_zero), 8);
-
  
     thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac).detach();
     thread(interfaceManager,ref(ParticipantsInfo)).detach();
     
-
     while (true)
     {
         discoveryManagerReceive(sockfd, ParticipantsInfo);
     }
-
- 
-
 }
-
-// PARTICIPANT
 
 void receive(char *placaRede)
 {
