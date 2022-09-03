@@ -126,10 +126,14 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
  
     thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac).detach();
     thread(interfaceManager,ref(ParticipantsInfo)).detach();
-    
+
+    //managerListManagement(sockfd,ParticipantsInfo) //thread propria
+
     while (true)
     {
         discoveryManagerReceive(sockfd, ParticipantsInfo);
+        
+
     }
 }
 
@@ -160,7 +164,10 @@ void receive(char *placaRede)
     while (flag_monitoring)
     {
         flag_monitoring = discoveryParticipantReceiveAndSend(sockfd, mac_hostname);
+        
     }
+
+    //participantListManagement(sockfd,ParticipantsInfo) thread propria
     
     receiveStatusRequestPacket();
     

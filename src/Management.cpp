@@ -163,6 +163,8 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
 
             ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
             update = true;
+            //remove = true;
+            //global Vector<ParticipantInfo>.pushback() --- toda escrita bloqueante
             selfkill = false;
         }
 

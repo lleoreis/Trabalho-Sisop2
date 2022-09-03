@@ -87,8 +87,6 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
             _mutex.unlock();
             ParticipantsInfo->at(position).setStatus(_status);
             update = true;
-            ParticipantInfo part = ParticipantsInfo->at(position);
-            monitoringManagerSendParticipant(sockfd, part, ipToSend, false); // update no status do participant
         }
         else
             _mutex.unlock();
@@ -142,6 +140,7 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
         monitoringManagerReceive(sockfd, position, ParticipantsInfo, ipToSend);
+
     }
 }
 
@@ -172,12 +171,14 @@ void receiveStatusRequestPacket()
     while (1)
     {
         monitoringParticipantReceiveAndSend(sockfd);
+ 
     }
 }
 
-void monitoringManagerSendParticipant(int &sockfd, ParticipantInfo part, string ipToSend, bool remove)
+/*void monitoringManagerSendParticipant(int &sockfd, ParticipantInfo part, string ipToSend, bool remove)
 {
         string partString;
+        struct sockaddr_in serv_addr;
 
         if(remove)
             partString = (part.getHostname() +","+ part.getIp() +","+ part.getMac() +",Remove");
@@ -192,3 +193,21 @@ void monitoringManagerSendParticipant(int &sockfd, ParticipantInfo part, string 
         if (n < 0)
             printf("ERROR sendto");
 }
+*/
+/*
+    Opçoes
+
+    -- Update que tem estados
+
+    -- Update + 3 bool adicionais que cuidam do tipo
+        bool update/ remove,add,att
+            -fluxo do add
+                -Atualiza a flag
+                -Atualiza o participant generico
+                -
+                -
+
+    -- Chamada da função em posiçoes especifacas para cada tipo de ação
+
+
+*/
