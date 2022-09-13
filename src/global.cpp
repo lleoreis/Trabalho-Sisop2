@@ -3,6 +3,7 @@
 #define PORTDISCOVERY 4000
 #define PORTMONITORING 4001
 #define PORTMANAGEMENT 4002
+#define PORTUPDATE 4003
 
 using namespace std;
 bool update = false;
@@ -10,6 +11,12 @@ static mutex _mutex;
 bool selfkill = true;
 bool managerFlag = false;
 bool participantFlag = false;
+bool add = false;
+bool remove = false;
+bool updateList = false;
+
+//stack da lista
+vector<ParticipantInfo> participantStack;
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {
@@ -53,7 +60,7 @@ void initiate(char *interfaceRede)
 */
 /*void managerListManagement(argumentos){
         
-        while()
+        while(true)
             if(update)
                 if(adiciona)
                 no manager:
@@ -83,8 +90,9 @@ void initiate(char *interfaceRede)
 
 /*void participantListManagement(argumentos){
         
-        while()
+        while(true)
             if(update)
+                //""+"participantInfo quebrada em uma string"
                 if(adiciona)
                 no participant:
                     recebe o participantsInfo global.last()

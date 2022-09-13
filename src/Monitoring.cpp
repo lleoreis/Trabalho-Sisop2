@@ -52,7 +52,6 @@ void monitoringManagerSend(string ipToSend, int &sockfd)
     exit_addr.sin_port = htons(PORTMONITORING);
     exit_addr.sin_addr.s_addr = inet_addr(ipToSend.c_str());
 
-
     n = sendto(sockfd, "send status", 12, 0, (const struct sockaddr *)&exit_addr, sizeof(struct sockaddr_in));
     if (n < 0)
         printf("ERROR sendto");
@@ -71,26 +70,25 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 
     n = recvfrom(sockfd, buffer, 7, MSG_DONTWAIT, (struct sockaddr *)&from, &length);
 
-        if (n < 0)
-        {
-            strcpy(buffer, "Asleep");
-        }
+    if (n < 0)
+    {
+        strcpy(buffer, "Asleep");
+    }
 
-        if (strcmp(string(buffer).c_str(), "Awaken") == 0)
-            _status = true;
-        else
-            _status = false;
+    if (strcmp(string(buffer).c_str(), "Awaken") == 0)
+        _status = true;
+    else
+        _status = false;
 
-        _mutex.lock();
-        if (ParticipantsInfo->at(position).getStatus() != _status)
-        {
-            _mutex.unlock();
-            ParticipantsInfo->at(position).setStatus(_status);
-            update = true;
-        }
-        else
-            _mutex.unlock();
-    
+    _mutex.lock();
+    if (ParticipantsInfo->at(position).getStatus() != _status)
+    {
+        _mutex.unlock();
+        ParticipantsInfo->at(position).setStatus(_status);
+        update = true;
+    }
+    else
+        _mutex.unlock();
 }
 
 void monitoringParticipantReceiveAndSend(int &sockfd)
@@ -108,6 +106,106 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
+}
+
+void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
+{
+
+    int n, sockfd3;
+    struct sockaddr_in cli_addr;
+    char buf[256];
+    int reuse = 1;
+    socklen_t clilen;
+    clilen = sizeof(struct sockaddr_in);
+
+    string buffer;
+    size_t positionHostname;
+    size_t positionMac;
+    size_t positionIp;
+    size_t positionStatus;
+
+    string hostnameUpdate;
+    string macUpdate;
+    string ipUpdate;
+    string statusUpdateString;
+    bool statusUpdate;
+
+    if ((sockfd3 = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    cli_addr.sin_family = AF_INET;
+    cli_addr.sin_port = htons(PORTUPDATE);
+    cli_addr.sin_addr.s_addr = INADDR_ANY;
+    bzero(&(cli_addr.sin_zero), 8);
+
+    setsockopt(sockfd3, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int));
+
+    if (bind(sockfd3, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr)) < 0)
+        printf("ERROR on binding");
+
+    while (true)
+    {
+        n = recvfrom(sockfd3, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
+        if (n < 0)
+            printf("ERROR on recvfrom");
+
+        buffer = string(buf);      
+        buffer = buffer.substr(1); 
+
+        positionHostname = buffer.find(",");
+        positionMac = buffer.find(",", positionHostname + 1);
+        positionIp = buffer.find(",", positionMac + 1);
+        positionStatus = buffer.find(",", positionIp + 1);
+
+        hostnameUpdate = buffer.substr(0, positionHostname - 1);
+        macUpdate = buffer.substr(positionHostname + 1, positionMac - 1);
+        ipUpdate = buffer.substr(positionMac + 1, positionIp - 1);
+        statusUpdateString = buffer.substr(positionIp + 1, positionStatus - 1);
+        
+        if (statusUpdateString == "Awaken")
+            statusUpdate = true;
+        if (statusUpdateString == "Asleep")
+            statusUpdate = false;
+
+        ParticipantInfo participantFromStack(hostnameUpdate, macUpdate, ipUpdate, statusUpdate);
+
+        switch (buf[0])
+        {
+        case 'A':
+
+            ParticipantsInfo->push_back(participantFromStack);
+            break;
+
+        case 'R':
+
+            int pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+            if (pos)
+            {
+                ParticipantsInfo->erase(ParticipantsInfo->begin() + pos - 1);
+            }
+            else
+            {
+                cout << "participant não encontrado" << endl;
+            }
+            break;
+
+        case 'U':
+
+            int pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+            if (pos)
+            {
+                ParticipantsInfo->at(pos - 1).setStatus(participantFromStack.getStatus());
+            }
+            else
+            {
+                cout << "participant não encontrado" << endl;
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
 }
 
 void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, ParticipantInfo participant)
@@ -131,16 +229,13 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
     _mutex.unlock();
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-        printf("ERROR opening socket");    
-
-    
+        printf("ERROR opening socket");
 
     while (selfkill)
     {
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
         monitoringManagerReceive(sockfd, position, ParticipantsInfo, ipToSend);
-
     }
 }
 
@@ -149,8 +244,8 @@ void receiveStatusRequestPacket()
     int sockfd, n;
     socklen_t clilen;
     struct sockaddr_in exit_addr, cli_addr;
-    char buf[12]; 
-    int reuse=1;
+    char buf[12];
+    int reuse = 1;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
@@ -164,14 +259,14 @@ void receiveStatusRequestPacket()
 
     if (bind(sockfd, (struct sockaddr *)&exit_addr, sizeof(struct sockaddr)) < 0)
         printf("ERROR on binding");
-    
 
     clilen = sizeof(struct sockaddr_in);
+
+    // thread
 
     while (1)
     {
         monitoringParticipantReceiveAndSend(sockfd);
- 
     }
 }
 

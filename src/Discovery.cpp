@@ -167,7 +167,7 @@ void receive(char *placaRede)
         
     }
 
-    //participantListManagement(sockfd,ParticipantsInfo) thread propria
+    //participantListManagement(ParticipantsInfo) thread propria
     
     receiveStatusRequestPacket();
     
