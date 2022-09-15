@@ -15,7 +15,7 @@ bool add = false;
 bool remove = false;
 bool updateList = false;
 
-//stack da lista
+// stack da lista
 vector<ParticipantInfo> participantStack;
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
@@ -35,6 +35,38 @@ int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
     return 0;
 }
 
+void sendParticipantsUpdate(ParticipantInfo part, string flag, vector<ParticipantInfo> *ParticipantsInfo)
+{
+    int sockfd, n;
+    unsigned int length;
+    struct sockaddr_in serv_addr, from;
+    struct hostent *server;
+    string buffer;
+    int reuseaddr = 1;
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0)
+    {
+        fprintf(stderr, "setsockopt error");
+        exit(1);
+    }
+
+    string partStatus = part.getStatus() ? "Awaken" : "Asleep";
+    buffer = flag + "," + part.getHostname() + "," + part.getMac() + "," + part.getIp() + "," + partStatus + ",";
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORTUPDATE);
+
+    for (int i = 0; i < ParticipantsInfo->size(); i++){
+        serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo->at(i).getIp().c_str());
+        int n = sendto(sockfd, buffer.c_str(), 256, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); 
+        if (n < 0)
+            printf("ERROR sendto");
+
+    }
+}
+
 /*
 void initiate(char *interfaceRede)
 {
@@ -46,6 +78,7 @@ void initiate(char *interfaceRede)
 
         if (managerFlag)
         {
+            
             thread(broadcast(interfaceRede, &ParticipantsInfo)).detach();
             while (managerFlag){};
         }
@@ -54,12 +87,14 @@ void initiate(char *interfaceRede)
         {
             thread(receive(interfaceRede, &ParticipantsInfo)).detach();
             while (participantFlag){};
+            -mandar para os outros participantes que ele é o novo manager(mac e ip)
+            -atualizar a lista dos outros participantes
         }
     }
 }
 */
 /*void managerListManagement(argumentos){
-        
+
         while(true)
             if(update)
                 if(adiciona)
@@ -76,10 +111,10 @@ void initiate(char *interfaceRede)
                             popback na lista global
                             deleta da lista do manager
 
- 
 
-                if(atualiza) 
-                    no manager: 
+
+                if(atualiza)
+                    no manager:
                         participantsInfo global recebe participantsInfo.at(position)
                         itera na ParticipantsInfo do manager
                             manda para cada participant participantsInfo global.last()
@@ -89,7 +124,7 @@ void initiate(char *interfaceRede)
         */
 
 /*void participantListManagement(argumentos){
-        
+
         while(true)
             if(update)
                 //""+"participantInfo quebrada em uma string"
@@ -105,7 +140,7 @@ void initiate(char *interfaceRede)
                         itera na lista interna do participant
                             deleta na lista do participant
 
-                if(atualiza) 
+                if(atualiza)
                     no participant:
                         recebe o participant
                         pega o ip ou mac address

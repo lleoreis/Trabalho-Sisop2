@@ -86,6 +86,7 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
         _mutex.unlock();
         ParticipantsInfo->at(position).setStatus(_status);
         update = true;
+        sendParticipantsUpdate(ParticipantsInfo->at(position),"U",ParticipantsInfo);
     }
     else
         _mutex.unlock();
@@ -161,7 +162,7 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
         macUpdate = buffer.substr(positionHostname + 1, positionMac - 1);
         ipUpdate = buffer.substr(positionMac + 1, positionIp - 1);
         statusUpdateString = buffer.substr(positionIp + 1, positionStatus - 1);
-        
+
         if (statusUpdateString == "Awaken")
             statusUpdate = true;
         if (statusUpdateString == "Asleep")

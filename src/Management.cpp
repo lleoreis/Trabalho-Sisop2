@@ -128,6 +128,7 @@ void sendExitMessage(string managerip)
     if (n < 0)
         printf("ERROR on sendto");
 }
+
 void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
 {
     int m, sockfd;
@@ -160,9 +161,10 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
             string str(inet_ntoa(exit_addr.sin_addr));
 
             int pos = verifyIfIpExists(str, ParticipantsInfo) - 1; // controle para posicao zero
-
+            ParticipantInfo part = ParticipantsInfo->at(pos);
             ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
             update = true;
+            sendParticipantsUpdate(part,"R",ParticipantsInfo);
             //remove = true;
             //global Vector<ParticipantInfo>.pushback() --- toda escrita bloqueante
             selfkill = false;

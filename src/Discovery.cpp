@@ -65,6 +65,7 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
             update=true;
             thread(listenExit,ref(ParticipantsInfo)).detach();
             thread(sendStatusRequestPacket, ref(ParticipantsInfo), part).detach();
+            sendParticipantsUpdate(part,"A",ParticipantsInfo); 
         }
     }
 }
