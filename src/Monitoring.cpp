@@ -169,7 +169,7 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
             statusUpdate = false;
 
         ParticipantInfo participantFromStack(hostnameUpdate, macUpdate, ipUpdate, statusUpdate);
-
+        int pos;
         switch (buf[0])
         {
         case 'A':
@@ -179,7 +179,7 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
 
         case 'R':
 
-            int pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+            pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
             if (pos)
             {
                 ParticipantsInfo->erase(ParticipantsInfo->begin() + pos - 1);
@@ -192,7 +192,7 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
 
         case 'U':
 
-            int pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+            pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
             if (pos)
             {
                 ParticipantsInfo->at(pos - 1).setStatus(participantFromStack.getStatus());

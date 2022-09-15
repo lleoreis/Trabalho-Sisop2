@@ -11,8 +11,6 @@ static mutex _mutex;
 bool selfkill = true;
 bool managerFlag = false;
 bool participantFlag = false;
-bool add = false;
-bool remove = false;
 bool updateList = false;
 
 // stack da lista
