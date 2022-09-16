@@ -174,7 +174,7 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
             statusUpdate = false;
 
         ParticipantInfo participantFromStack(hostnameUpdate, macUpdate, ipUpdate, statusUpdate);
-
+        int pos;
         switch (buf[0])
         {
         case 'A':
