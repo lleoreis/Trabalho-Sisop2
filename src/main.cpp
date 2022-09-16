@@ -36,7 +36,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    vector<ParticipantInfo> ParticipantsInfo;
+    vector<ParticipantInfo> ParticipantsInfo;//deletar quando a initiate for implementada,vai ser criado dentro dela
     switch (argc)
     {
     case 2:

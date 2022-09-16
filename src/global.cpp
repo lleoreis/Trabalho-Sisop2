@@ -33,6 +33,40 @@ int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
     return 0;
 }
 
+void sendAllParticipants(vector<ParticipantInfo> *ParticipantsInfo,ParticipantInfo part)
+{
+    int sockfd, n;
+    unsigned int length;
+    struct sockaddr_in serv_addr, from;
+    struct hostent *server;
+    string buffer;
+    int reuseaddr = 1;
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0)
+    {
+        fprintf(stderr, "setsockopt error");
+        exit(1);
+    }
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORTUPDATE);
+    serv_addr.sin_addr.s_addr = inet_addr(part.getIp().c_str());
+
+    for (int i = 0; i < ParticipantsInfo->size(); i++){
+
+        string partStatus = ParticipantsInfo->at(i).getStatus() ? "Awaken" : "Asleep";
+        buffer = "A," + ParticipantsInfo->at(i).getHostname() + "," + ParticipantsInfo->at(i).getMac() + "," + ParticipantsInfo->at(i).getIp() + "," + partStatus + ",";
+        usleep(500);
+        int n = sendto(sockfd, buffer.c_str(), 256, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); 
+        if (n < 0)
+            printf("ERROR sendto");
+
+    }
+    
+}
+
 void sendParticipantsUpdate(ParticipantInfo part, string flag, vector<ParticipantInfo> *ParticipantsInfo)
 {
     int sockfd, n;
@@ -90,60 +124,4 @@ void initiate(char *interfaceRede)
         }
     }
 }
-*/
-/*void managerListManagement(argumentos){
-
-        while(true)
-            if(update)
-                if(adiciona)
-                no manager:
-                    participantsInfo global recebe participantsInfo.last()
-                    itera na ParticipantsInfo do manager
-                        manda para cada participant participantsInfo global.last()
-                    participantsInfo global.popback()
-
-                if(remove)
-                    no manager:
-                        Itera lista global
-                            pega participant
-                            popback na lista global
-                            deleta da lista do manager
-
-
-
-                if(atualiza)
-                    no manager:
-                        participantsInfo global recebe participantsInfo.at(position)
-                        itera na ParticipantsInfo do manager
-                            manda para cada participant participantsInfo global.last()
-                        participantsInfo global.popback()
-
-        }
-        */
-
-/*void participantListManagement(argumentos){
-
-        while(true)
-            if(update)
-                //""+"participantInfo quebrada em uma string"
-                if(adiciona)
-                no participant:
-                    recebe o participantsInfo global.last()
-                    add na lista interna do participant
-
-                if(remove)
-                    no participant:
-                        recebe o participant
-                        pegar o ip/hostname
-                        itera na lista interna do participant
-                            deleta na lista do participant
-
-                if(atualiza)
-                    no participant:
-                        recebe o participant
-                        pega o ip ou mac address
-                        itera na lista interna do participant
-                            atualiza o status do participant na lista interna
-
-        }
 */

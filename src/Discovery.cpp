@@ -39,6 +39,7 @@ void discoveryManagerSend(int &sockfd, struct sockaddr_in serv_addr, string mac)
     }
 }
 
+
 void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsInfo)
 {
     struct sockaddr_in from;
@@ -59,13 +60,14 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
         
         if (!verifyIfIpExists(inet_ntoa(from.sin_addr), ParticipantsInfo))
         {
-
-            ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
             ParticipantInfo part = ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true);
+            sendAllParticipants(ParticipantsInfo,part);
+            ParticipantsInfo->push_back(ParticipantInfo(hostname, mac, inet_ntoa(from.sin_addr), true)); // mensagem dentro do buffer do sendto do participant(recvfrom do manager) = mac address
             update=true;
             thread(listenExit,ref(ParticipantsInfo)).detach();
             thread(sendStatusRequestPacket, ref(ParticipantsInfo), part).detach();
-            sendParticipantsUpdate(part,"A",ParticipantsInfo); 
+            sendParticipantsUpdate(part,"A",ParticipantsInfo); //envia novo participante para todos participantes presentes na lista(ele mesmo incluso)
+
         }
     }
 }
@@ -152,7 +154,7 @@ void receive(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTDISCOVERY);
-    serv_addr.sin_addr.s_addr = INADDR_ANY; // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
     bzero(&(serv_addr.sin_zero), 8);
 
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)

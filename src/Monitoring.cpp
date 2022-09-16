@@ -86,11 +86,39 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
         _mutex.unlock();
         ParticipantsInfo->at(position).setStatus(_status);
         update = true;
-        sendParticipantsUpdate(ParticipantsInfo->at(position),"U",ParticipantsInfo);
+        sendParticipantsUpdate(ParticipantsInfo->at(position), "E", ParticipantsInfo); //deleta a lista do participante que acordou
+        sendAllParticipants(ParticipantsInfo,ParticipantsInfo->at(position)); //reenvia a lista atualizada
+        sendParticipantsUpdate(ParticipantsInfo->at(position), "U", ParticipantsInfo); //atualiza o status do participant em todos os participantes restantes
     }
     else
         _mutex.unlock();
 }
+
+// algoritmo de bully
+/*
+ -Participantes 
+    -Manager saindo com ctrl+c
+        -Recebe a mensagem de saida e vai inicia a eleiçao.
+    -Manager suspenso
+        -Apos não receber mensagens na monitoring apos x tempo(s) , inicia-se a eleição
+    -Eleição
+        -Participipantes se enviam seus PIDs(por mensagem direta) e então comparam entre si o tamanho do PID,caso tenha só 1 participante ele mesmo vira o manager
+
+        -Apos a comparação caso não exista um PID maior que o proprio ele proprio vira o Manager
+            -ParticipantFlag=false/ManagerFlag=true;
+        
+        -O vencendor da eleição é aquele com o maior PID
+
+        -TODO---Em caso de PIDs iguais(não necessario)
+
+
+
+ -Manager:
+    -Saindo com ctrl+c
+        -Manager envia mensagem de saida e ocorre a chamada da eleição
+    -Suspendendo a maquina
+        -Nada
+*/
 
 void monitoringParticipantReceiveAndSend(int &sockfd)
 {
@@ -151,97 +179,71 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
         if (n < 0)
             printf("ERROR on recvfrom");
 
-        buffer = string(buf);      
-        buffer = buffer.substr(2); 
-
-        positionHostname = buffer.find(",");
-        hostnameUpdate = buffer.substr(0, positionHostname);
-
-        positionMac = buffer.find(",", positionHostname+1);
-        macUpdate = buffer.substr(positionHostname+1, 14);
-
-        positionIp = buffer.find(",", positionMac);
-        
-
-        positionStatus = buffer.find(",", positionIp+1);
-        statusUpdateString = buffer.substr(positionStatus + 1,6);
-
-	ipUpdate = buffer.substr(positionMac+1, positionStatus-positionIp-1);
-
-        if (statusUpdateString == "Awaken")
-            statusUpdate = true;
-        if (statusUpdateString == "Asleep")
-            statusUpdate = false;
-
-        ParticipantInfo participantFromStack(hostnameUpdate, macUpdate, ipUpdate, statusUpdate);
-        int pos;
-        switch (buf[0])
+        if (buf[0] != 'E')
         {
-        case 'A':
+            buffer = string(buf);
+            buffer = buffer.substr(2);
 
-            ParticipantsInfo->push_back(participantFromStack);
-	                for (int i = 0; i < ParticipantsInfo->size(); i++)
+            positionHostname = buffer.find(",");
+            hostnameUpdate = buffer.substr(0, positionHostname);
+
+            positionMac = buffer.find(",", positionHostname + 1);
+            macUpdate = buffer.substr(positionHostname + 1, 14);
+
+            positionIp = buffer.find(",", positionMac);
+
+            positionStatus = buffer.find(",", positionIp + 1);
+            statusUpdateString = buffer.substr(positionStatus + 1, 6);
+
+            ipUpdate = buffer.substr(positionMac + 1, positionStatus - positionIp - 1);
+
+            if (statusUpdateString == "Awaken")
+                statusUpdate = true;
+            if (statusUpdateString == "Asleep")
+                statusUpdate = false;
+
+            ParticipantInfo participantFromStack(hostnameUpdate, macUpdate, ipUpdate, statusUpdate);
+
+            switch (buf[0])
             {
-                cout << ParticipantsInfo->at(i).getHostname() << " | ";
-                cout << ParticipantsInfo->at(i).getIp() << " | ";
-                cout << ParticipantsInfo->at(i).getMac() << " | ";
-                if (ParticipantsInfo->at(i).getStatus())
-                    cout << "Awaken |" << endl;
+            case 'A':
+
+                ParticipantsInfo->push_back(participantFromStack);
+                break;
+            case 'R':
+
+                pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+                if (pos)
+                {
+                    ParticipantsInfo->erase(ParticipantsInfo->begin() + pos - 1);
+                }
                 else
-                    cout << "Asleep |" << endl;
-            }
-            break;
+                {
+                    cout << "participant não encontrado" << endl;
+                }
+                break;
 
-        case 'R':
+            case 'U':
 
-            pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
-            if (pos)
-            {
-                ParticipantsInfo->erase(ParticipantsInfo->begin() + pos - 1);
-	                for (int i = 0; i < ParticipantsInfo->size(); i++)
-            {
-                cout << ParticipantsInfo->at(i).getHostname() << " | ";
-                cout << ParticipantsInfo->at(i).getIp() << " | ";
-                cout << ParticipantsInfo->at(i).getMac() << " | ";
-                if (ParticipantsInfo->at(i).getStatus())
-                    cout << "Awaken |" << endl;
+                pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+                if (pos)
+                {
+                    ParticipantsInfo->at(pos - 1).setStatus(participantFromStack.getStatus());
+                }
                 else
-                    cout << "Asleep |" << endl;
-            }
-            }
-            else
-            {
-                cout << "participant não encontrado" << endl;
-            }
-            break;
+                {
+                    cout << "participant não encontrado" << endl;
+                }
+                break;
 
-        case 'U':
-
-            pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
-            if (pos)
-            {
-                ParticipantsInfo->at(pos - 1).setStatus(participantFromStack.getStatus());
-	                for (int i = 0; i < ParticipantsInfo->size(); i++)
-            {
-                cout << ParticipantsInfo->at(i).getHostname() << " | ";
-                cout << ParticipantsInfo->at(i).getIp() << " | ";
-                cout << ParticipantsInfo->at(i).getMac() << " | ";
-                if (ParticipantsInfo->at(i).getStatus())
-                    cout << "Awaken |" << endl;
-                else
-                    cout << "Asleep |" << endl;
+            default:
+                break;
             }
-            }
-            else
-            {
-                cout << "participant não encontrado" << endl;
-            }
-            break;
-
-        default:
-            break;
         }
-
+        else
+        {
+            ParticipantsInfo->clear();
+        }
     }
 }
 
