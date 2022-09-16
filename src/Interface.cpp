@@ -111,7 +111,7 @@ void interfaceParticipant(string mac, string hostname, string ip)
 {
     manager_ip = ip;
     sleep(1);
-    system("clear");
+    //system("clear");
     cout << "Manager Hostaname: " << hostname << endl;
     cout << "Manager MAC Address: " << mac << endl;
     cout << "Manager IP: " << ip << endl;

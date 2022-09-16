@@ -138,7 +138,7 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     }
 }
 
-void receive(char *placaRede)
+void receive(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
 {
     Tools tools;
     int sockfd, n;
@@ -168,7 +168,7 @@ void receive(char *placaRede)
         
     }
 
-    //participantListManagement(ParticipantsInfo) thread propria
+    thread(participantListManagement, ref(ParticipantsInfo)).detach();// thread propria
     
     receiveStatusRequestPacket();
     

@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     {
     case 2:
         cout << "Running as PARTICIPANT\n";
-        std::thread(receive,argv[1]).detach();
+        std::thread(receive,argv[1],&ParticipantsInfo).detach();
         while(true){};
         //participantFlag=true;
         //initiate(argv[1]);      

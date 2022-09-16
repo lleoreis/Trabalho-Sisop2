@@ -124,6 +124,7 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
     size_t positionMac;
     size_t positionIp;
     size_t positionStatus;
+    int pos;
 
     string hostnameUpdate;
     string macUpdate;
@@ -151,17 +152,21 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
             printf("ERROR on recvfrom");
 
         buffer = string(buf);      
-        buffer = buffer.substr(1); 
+        buffer = buffer.substr(2); 
 
         positionHostname = buffer.find(",");
-        positionMac = buffer.find(",", positionHostname + 1);
-        positionIp = buffer.find(",", positionMac + 1);
-        positionStatus = buffer.find(",", positionIp + 1);
+        hostnameUpdate = buffer.substr(0, positionHostname);
 
-        hostnameUpdate = buffer.substr(0, positionHostname - 1);
-        macUpdate = buffer.substr(positionHostname + 1, positionMac - 1);
-        ipUpdate = buffer.substr(positionMac + 1, positionIp - 1);
-        statusUpdateString = buffer.substr(positionIp + 1, positionStatus - 1);
+        positionMac = buffer.find(",", positionHostname+1);
+        macUpdate = buffer.substr(positionHostname+1, 14);
+
+        positionIp = buffer.find(",", positionMac);
+        
+
+        positionStatus = buffer.find(",", positionIp+1);
+        statusUpdateString = buffer.substr(positionStatus + 1,6);
+
+	ipUpdate = buffer.substr(positionMac+1, positionStatus-positionIp-1);
 
         if (statusUpdateString == "Awaken")
             statusUpdate = true;
@@ -175,14 +180,34 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
         case 'A':
 
             ParticipantsInfo->push_back(participantFromStack);
+	                for (int i = 0; i < ParticipantsInfo->size(); i++)
+            {
+                cout << ParticipantsInfo->at(i).getHostname() << " | ";
+                cout << ParticipantsInfo->at(i).getIp() << " | ";
+                cout << ParticipantsInfo->at(i).getMac() << " | ";
+                if (ParticipantsInfo->at(i).getStatus())
+                    cout << "Awaken |" << endl;
+                else
+                    cout << "Asleep |" << endl;
+            }
             break;
 
         case 'R':
 
-            int pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+            pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
             if (pos)
             {
                 ParticipantsInfo->erase(ParticipantsInfo->begin() + pos - 1);
+	                for (int i = 0; i < ParticipantsInfo->size(); i++)
+            {
+                cout << ParticipantsInfo->at(i).getHostname() << " | ";
+                cout << ParticipantsInfo->at(i).getIp() << " | ";
+                cout << ParticipantsInfo->at(i).getMac() << " | ";
+                if (ParticipantsInfo->at(i).getStatus())
+                    cout << "Awaken |" << endl;
+                else
+                    cout << "Asleep |" << endl;
+            }
             }
             else
             {
@@ -192,10 +217,20 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
 
         case 'U':
 
-            int pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
+            pos = verifyIfIpExists(participantFromStack.getIp(), ParticipantsInfo);
             if (pos)
             {
                 ParticipantsInfo->at(pos - 1).setStatus(participantFromStack.getStatus());
+	                for (int i = 0; i < ParticipantsInfo->size(); i++)
+            {
+                cout << ParticipantsInfo->at(i).getHostname() << " | ";
+                cout << ParticipantsInfo->at(i).getIp() << " | ";
+                cout << ParticipantsInfo->at(i).getMac() << " | ";
+                if (ParticipantsInfo->at(i).getStatus())
+                    cout << "Awaken |" << endl;
+                else
+                    cout << "Asleep |" << endl;
+            }
             }
             else
             {
@@ -206,6 +241,7 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
         default:
             break;
         }
+
     }
 }
 
