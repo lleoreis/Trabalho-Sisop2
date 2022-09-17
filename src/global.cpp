@@ -100,7 +100,14 @@ void sendParticipantsUpdate(ParticipantInfo part, string flag, vector<Participan
 
     }
 }
-
+void printManagerInfo(string mac, string hostname, string ip)
+{
+    sleep(1);
+    system("clear");
+    cout << "Manager Hostaname: " << hostname << endl;
+    cout << "Manager MAC Address: " << mac << endl;
+    cout << "Manager IP: " << ip << endl;
+}
 /*
 void initiate(char *interfaceRede)
 {
@@ -126,4 +133,31 @@ void initiate(char *interfaceRede)
         }
     }
 }
+*/
+// algoritmo de bully
+/*
+ -Participantes
+    -(OPCIONAL)Manager saindo com ctrl+c
+        -Recebe a mensagem de saida e vai inicia a eleiçao.(monitoring)
+
+    -Manager suspenso
+        -Apos não receber mensagens na monitoring apos x tempo(s) , inicia-se a eleição
+
+    -Eleição
+        -Participipantes se enviam seus PIDs(por mensagem direta) e então comparam entre si o tamanho do PID,caso tenha só 1 participante ele mesmo vira o manager
+
+        -Apos a comparação caso não exista um PID maior que o proprio ele proprio vira o Manager
+            -ParticipantFlag=false/ManagerFlag=true;
+
+        -O vencendor da eleição é aquele com o maior PID
+
+        -TODO---Em caso de PIDs iguais(não necessario)
+
+
+
+ -Manager:
+    -(OPCIONAL)Saindo com ctrl+c
+        -Manager envia mensagem de saida e ocorre a chamada da eleição
+    -Suspendendo a maquina
+        -Nada
 */

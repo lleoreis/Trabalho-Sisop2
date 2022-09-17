@@ -107,15 +107,8 @@ void signalHandler(int s)
     exit(0);
 }
 
-void interfaceParticipant(string mac, string hostname, string ip)
+void interfaceParticipant(string ip)
 {
-    manager_ip = ip;
-    sleep(1);
-    system("clear");
-    cout << "Manager Hostaname: " << hostname << endl;
-    cout << "Manager MAC Address: " << mac << endl;
-    cout << "Manager IP: " << ip << endl;
-
     signal(SIGINT, signalHandler);
     while (true)
     {

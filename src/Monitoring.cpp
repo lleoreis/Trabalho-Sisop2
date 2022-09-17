@@ -86,41 +86,14 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
         _mutex.unlock();
         ParticipantsInfo->at(position).setStatus(_status);
         update = true;
-        sendParticipantsUpdate(ParticipantsInfo->at(position), "E", ParticipantsInfo); //deleta a lista do participante que acordou
-        sendAllParticipants(ParticipantsInfo,ParticipantsInfo->at(position)); //reenvia a lista atualizada
-        sendParticipantsUpdate(ParticipantsInfo->at(position), "U", ParticipantsInfo); //atualiza o status do participant em todos os participantes restantes
+        sendParticipantsUpdate(ParticipantsInfo->at(position), "E", ParticipantsInfo); // deleta a lista do participante que acordou
+        sendAllParticipants(ParticipantsInfo, ParticipantsInfo->at(position));         // reenvia a lista atualizada
+        sendParticipantsUpdate(ParticipantsInfo->at(position), "U", ParticipantsInfo); // atualiza o status do participant em todos os participantes restantes
     }
     else
         _mutex.unlock();
 }
 
-// algoritmo de bully
-/*
- -Participantes 
-    -(OPCIONAL)Manager saindo com ctrl+c
-        -Recebe a mensagem de saida e vai inicia a eleiçao.(monitoring)
-
-    -Manager suspenso
-        -Apos não receber mensagens na monitoring apos x tempo(s) , inicia-se a eleição
-
-    -Eleição
-        -Participipantes se enviam seus PIDs(por mensagem direta) e então comparam entre si o tamanho do PID,caso tenha só 1 participante ele mesmo vira o manager
-
-        -Apos a comparação caso não exista um PID maior que o proprio ele proprio vira o Manager
-            -ParticipantFlag=false/ManagerFlag=true;
-        
-        -O vencendor da eleição é aquele com o maior PID
-
-        -TODO---Em caso de PIDs iguais(não necessario)
-
-
-
- -Manager:
-    -(OPCIONAL)Saindo com ctrl+c
-        -Manager envia mensagem de saida e ocorre a chamada da eleição
-    -Suspendendo a maquina
-        -Nada
-*/
 void receiveAllPIDs(vector<ParticipantInfo> *ParticipantsInfo)
 {
     int sockfd, n;
@@ -129,9 +102,7 @@ void receiveAllPIDs(vector<ParticipantInfo> *ParticipantsInfo)
     struct hostent *server;
     char buf[128];
     int reuseaddr = 1;
-    unsigned int length = sizeof(struct sockaddr_in);
-
-
+    length = sizeof(struct sockaddr_in);
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
@@ -150,18 +121,17 @@ void receiveAllPIDs(vector<ParticipantInfo> *ParticipantsInfo)
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
         printf("ERROR on binding");
 
-    while(PIDs.size() < ParticipantsInfo->size() - 1)
+    while (PIDs.size() < ParticipantsInfo->size() - 1)
     {
         int n = recvfrom(sockfd, buf, 128, 0, (struct sockaddr *)&from, &length);
         if (n < 0)
             cout << "Erro recvfrom numero:" << n << errno << std::flush;
 
         string numero = string(buf);
-        numero = numero.substr(0,numero.find(',')-1);
+        numero = numero.substr(0, numero.find(',') - 1);
         int PID = stoi(numero);
 
         PIDs.push_back(PID);
-
     }
 }
 void election(vector<ParticipantInfo> *ParticipantsInfo)
@@ -180,44 +150,44 @@ void election(vector<ParticipantInfo> *ParticipantsInfo)
         fprintf(stderr, "setsockopt error");
         exit(1);
     }
-    //THREAD DE RECEIVE ANTES DO ENVIO
-    thread(receiveAllPIDs,ref(ParticipantsInfo)).detach();
-    //ENVIA UMA VEZ O PID PRA TODOS
+    // THREAD DE RECEIVE ANTES DO ENVIO
+    thread(receiveAllPIDs, ref(ParticipantsInfo)).detach();
+    // ENVIA UMA VEZ O PID PRA TODOS
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTELECTION);
     int PID = getpid();
-    string strPID = to_string(PID)+',';
-    for (int i = 0; i < ParticipantsInfo->size(); i++){
+    string strPID = to_string(PID) + ',';
+    for (int i = 0; i < ParticipantsInfo->size(); i++)
+    {
 
         serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo->at(i).getIp().c_str());
-        int n = sendto(sockfd,strPID.c_str(), 128, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); 
+        int n = sendto(sockfd, strPID.c_str(), 128, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
         if (n < 0)
             printf("ERROR sendto");
     }
 
-    //COMEÇA O ALGORITMO DE ELEIÇAO
+    // COMEÇA O ALGORITMO DE ELEIÇAO
     bool notManager = false;
-    for(int i = 0; i < PIDs.size(); i++){
-        if(PID < PIDs.at(i))
+    for (int i = 0; i < PIDs.size(); i++)
+    {
+        if (PID < PIDs.at(i))
         {
             notManager = true;
             break;
         }
     }
 
-    //SELECIONA-SE UM MANAGER NOVO
-    if(!notManager)
+    // SELECIONA-SE UM MANAGER NOVO
+    if (!notManager)
     {
-        //flags do flipflop
-        
+        // flags do flipflop
     }
-    //ATUALIZA NA LISTA DOS PARTICIPANTES QUEM É O MANAGER
+    // ATUALIZA NA LISTA DOS PARTICIPANTES QUEM É O MANAGER
 
-    //ZERAR LISTA GLOBAL DE PIDS
+    // ZERAR LISTA GLOBAL DE PIDS
     PIDs.clear();
-
 }
-void monitoringParticipantReceiveAndSend(int &sockfd,vector<ParticipantInfo> *ParticipantsInfo)
+void monitoringParticipantReceiveAndSend(int &sockfd, vector<ParticipantInfo> *ParticipantsInfo)
 {
     int n;
     socklen_t clilen;
@@ -231,7 +201,7 @@ void monitoringParticipantReceiveAndSend(int &sockfd,vector<ParticipantInfo> *Pa
         election(ParticipantsInfo);
     }
 
-    //caso mt tempo passe sem 
+    // caso mt tempo passe sem
 
     n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
@@ -379,7 +349,7 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
     }
 }
 
-void receiveStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo,string managerInfo)
+void receiveStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, string managerInfo)
 {
     int sockfd, n;
     socklen_t clilen;
@@ -413,10 +383,10 @@ void receiveStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo,string
     buffer.erase(0, pos + 1);
     string ipAddress = buffer;
 
-    thread(interfaceParticipant, mac, hostname,ipAddress).detach();
+    thread(printManagerInfo, mac, hostname, ipAddress).detach();
     while (1)
     {
-        monitoringParticipantReceiveAndSend(sockfd,ParticipantsInfo);
+        monitoringParticipantReceiveAndSend(sockfd, ParticipantsInfo);
     }
 }
 

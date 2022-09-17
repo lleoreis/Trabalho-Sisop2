@@ -82,7 +82,7 @@ string discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     if (n < 0)
         printf("ERROR on recvfrom");
 
-    //thread(interfaceParticipant, mac, hostname, inet_ntoa(from.sin_addr)).detach();
+    thread(interfaceParticipant,inet_ntoa(from.sin_addr)).detach();
 
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)
