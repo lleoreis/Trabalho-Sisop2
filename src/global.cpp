@@ -4,6 +4,7 @@
 #define PORTMONITORING 4001
 #define PORTMANAGEMENT 4002
 #define PORTUPDATE 4003
+#define PORTELECTION 4004
 
 using namespace std;
 bool update = false;
@@ -15,6 +16,7 @@ bool updateList = false;
 
 // stack da lista
 vector<ParticipantInfo> participantStack;
+vector<int> PIDs;
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {

@@ -72,7 +72,7 @@ void discoveryManagerReceive(int &sockfd, vector<ParticipantInfo> *ParticipantsI
     }
 }
 
-int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
+string discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
 {
     struct sockaddr_in from;
     char buf[256];
@@ -82,20 +82,15 @@ int discoveryParticipantReceiveAndSend(int &sockfd, string mac_hostname)
     if (n < 0)
         printf("ERROR on recvfrom");
 
-    string buffer = string(buf);
-    size_t pos = buffer.find("|");
-    string mac = buffer.substr(0, pos);
-    buffer.erase(0, pos + 1);
-    string hostname = buffer;
-
-    thread(interfaceParticipant, mac, hostname, inet_ntoa(from.sin_addr)).detach();
+    //thread(interfaceParticipant, mac, hostname, inet_ntoa(from.sin_addr)).detach();
 
     n = sendto(sockfd, mac_hostname.c_str(), 32, 0, (struct sockaddr *)&from, sizeof(struct sockaddr));
     if (n < 0)
         printf("ERROR on sendto");
 
     bzero(buf, 256);
-    return 0;
+    return (string(buf)+","+inet_ntoa(from.sin_addr));
+
 }
 
 
@@ -111,7 +106,7 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     int broadcastPermission = 1;
     char *broadcastIP;
 
-    string mac = tools.getMacAddress(placaRede);
+    string mac_and_hostname = tools.getMacAddress(placaRede);
     broadcastIP = "255.255.255.255";
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -127,7 +122,7 @@ void broadcast(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
     serv_addr.sin_addr.s_addr = inet_addr(broadcastIP); // pode usar INADDR_BROADCAST que é um define de biblioteca pro ip 255.255.255.255
     bzero(&(serv_addr.sin_zero), 8);
  
-    thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac).detach();
+    thread(discoveryManagerSend, std::ref(sockfd), serv_addr, mac_and_hostname).detach();
     thread(interfaceManager,ref(ParticipantsInfo)).detach();
 
     //managerListManagement(sockfd,ParticipantsInfo) //thread propria
@@ -163,16 +158,16 @@ void receive(char *placaRede, vector<ParticipantInfo> *ParticipantsInfo)
 
     string mac_hostname = tools.getMacAddress(placaRede);
 
-    int flag_monitoring = 1;
-    while (flag_monitoring)
+    string managerInfo = ".";
+    while (managerInfo.length() == 1)
     {
-        flag_monitoring = discoveryParticipantReceiveAndSend(sockfd, mac_hostname);
+        managerInfo = discoveryParticipantReceiveAndSend(sockfd,mac_hostname);
         
     }
 
     thread(participantListManagement, ref(ParticipantsInfo)).detach();// thread propria
     
-    receiveStatusRequestPacket();
+    receiveStatusRequestPacket(ParticipantsInfo,managerInfo);
     
     
 }

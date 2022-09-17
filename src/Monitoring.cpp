@@ -97,10 +97,12 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 // algoritmo de bully
 /*
  -Participantes 
-    -Manager saindo com ctrl+c
-        -Recebe a mensagem de saida e vai inicia a eleiçao.
+    -(OPCIONAL)Manager saindo com ctrl+c
+        -Recebe a mensagem de saida e vai inicia a eleiçao.(monitoring)
+
     -Manager suspenso
         -Apos não receber mensagens na monitoring apos x tempo(s) , inicia-se a eleição
+
     -Eleição
         -Participipantes se enviam seus PIDs(por mensagem direta) e então comparam entre si o tamanho do PID,caso tenha só 1 participante ele mesmo vira o manager
 
@@ -114,13 +116,108 @@ void monitoringManagerReceive(int &sockfd, int &position, vector<ParticipantInfo
 
 
  -Manager:
-    -Saindo com ctrl+c
+    -(OPCIONAL)Saindo com ctrl+c
         -Manager envia mensagem de saida e ocorre a chamada da eleição
     -Suspendendo a maquina
         -Nada
 */
+void receiveAllPIDs(vector<ParticipantInfo> *ParticipantsInfo)
+{
+    int sockfd, n;
+    unsigned int length;
+    struct sockaddr_in serv_addr, from;
+    struct hostent *server;
+    char buf[128];
+    int reuseaddr = 1;
+    unsigned int length = sizeof(struct sockaddr_in);
 
-void monitoringParticipantReceiveAndSend(int &sockfd)
+
+
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORTELECTION);
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    bzero(&(serv_addr.sin_zero), 8);
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0)
+    {
+        fprintf(stderr, "setsockopt error");
+        exit(1);
+    }
+
+    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) < 0)
+        printf("ERROR on binding");
+
+    while(PIDs.size() < ParticipantsInfo->size() - 1)
+    {
+        int n = recvfrom(sockfd, buf, 128, 0, (struct sockaddr *)&from, &length);
+        if (n < 0)
+            cout << "Erro recvfrom numero:" << n << errno << std::flush;
+
+        string numero = string(buf);
+        numero = numero.substr(0,numero.find(',')-1);
+        int PID = stoi(numero);
+
+        PIDs.push_back(PID);
+
+    }
+}
+void election(vector<ParticipantInfo> *ParticipantsInfo)
+{
+    int sockfd, n;
+    unsigned int length;
+    struct sockaddr_in serv_addr, from;
+    struct hostent *server;
+    string buffer;
+    int reuseaddr = 1;
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        printf("ERROR opening socket");
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0)
+    {
+        fprintf(stderr, "setsockopt error");
+        exit(1);
+    }
+    //THREAD DE RECEIVE ANTES DO ENVIO
+    thread(receiveAllPIDs,ref(ParticipantsInfo)).detach();
+    //ENVIA UMA VEZ O PID PRA TODOS
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORTELECTION);
+    int PID = getpid();
+    string strPID = to_string(PID)+',';
+    for (int i = 0; i < ParticipantsInfo->size(); i++){
+
+        serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo->at(i).getIp().c_str());
+        int n = sendto(sockfd,strPID.c_str(), 128, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); 
+        if (n < 0)
+            printf("ERROR sendto");
+    }
+
+    //COMEÇA O ALGORITMO DE ELEIÇAO
+    bool notManager = false;
+    for(int i = 0; i < PIDs.size(); i++){
+        if(PID < PIDs.at(i))
+        {
+            notManager = true;
+            break;
+        }
+    }
+
+    //SELECIONA-SE UM MANAGER NOVO
+    if(!notManager)
+    {
+        //flags do flipflop
+        
+    }
+    //ATUALIZA NA LISTA DOS PARTICIPANTES QUEM É O MANAGER
+
+    //ZERAR LISTA GLOBAL DE PIDS
+    PIDs.clear();
+
+}
+void monitoringParticipantReceiveAndSend(int &sockfd,vector<ParticipantInfo> *ParticipantsInfo)
 {
     int n;
     socklen_t clilen;
@@ -128,9 +225,13 @@ void monitoringParticipantReceiveAndSend(int &sockfd)
     char buf[12];
     clilen = sizeof(struct sockaddr_in);
 
-    n = recvfrom(sockfd, buf, 12, 0, (struct sockaddr *)&cli_addr, &clilen);
+    n = recvfrom(sockfd, buf, 12, MSG_DONTWAIT, (struct sockaddr *)&cli_addr, &clilen);
     if (n < 0)
-        printf("ERROR on recvfrom");
+    {
+        election(ParticipantsInfo);
+    }
+
+    //caso mt tempo passe sem 
 
     n = sendto(sockfd, "Awaken", 7, 0, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr));
     if (n < 0)
@@ -278,12 +379,12 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
     }
 }
 
-void receiveStatusRequestPacket()
+void receiveStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo,string managerInfo)
 {
     int sockfd, n;
     socklen_t clilen;
     struct sockaddr_in exit_addr, cli_addr;
-    char buf[12];
+    char buf[256];
     int reuse = 1;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -302,10 +403,20 @@ void receiveStatusRequestPacket()
     clilen = sizeof(struct sockaddr_in);
 
     // thread
+    string buffer = string(buf);
+    size_t pos = buffer.find("|");
+    string mac = buffer.substr(0, pos);
+    buffer.erase(0, pos + 1);
+    string hostname = buffer;
+    pos = buffer.find(",");
+    hostname = buffer.substr(0, pos);
+    buffer.erase(0, pos + 1);
+    string ipAddress = buffer;
 
+    thread(interfaceParticipant, mac, hostname,ipAddress).detach();
     while (1)
     {
-        monitoringParticipantReceiveAndSend(sockfd);
+        monitoringParticipantReceiveAndSend(sockfd,ParticipantsInfo);
     }
 }
 
