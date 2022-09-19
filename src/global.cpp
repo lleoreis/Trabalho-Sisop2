@@ -13,10 +13,51 @@ bool selfkill = true;
 bool managerFlag = false;
 bool participantFlag = false;
 bool updateList = false;
+bool newManager = false;
 
 // stack da lista
 vector<ParticipantInfo> participantStack;
 vector<int> PIDs;
+vector<ParticipantInfo> participant;
+
+void check_host_name(int hostname)
+{ // This function returns host name for local computer
+    if (hostname == -1)
+    {
+        perror("gethostname");
+        exit(1);
+    }
+}
+void check_host_entry(struct hostent *hostentry)
+{ // find host info from host name
+    if (hostentry == NULL)
+    {
+        perror("gethostbyname");
+        exit(1);
+    }
+}
+void IP_formatter(char *IPbuffer)
+{ // convert IP string to dotted decimal format
+    if (NULL == IPbuffer)
+    {
+        perror("inet_ntoa");
+        exit(1);
+    }
+}
+
+string getIP()
+{
+    char host[256];
+    char *IP;
+    struct hostent *host_entry;
+    int hostname;
+    hostname = gethostname(host, sizeof(host)); // find the host name
+    check_host_name(hostname);
+    host_entry = gethostbyname(host); // find host information
+    check_host_entry(host_entry);
+    IP = inet_ntoa(*((struct in_addr *)host_entry->h_addr_list[0])); // Convert into IP string
+    return IP;
+}
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {
@@ -35,7 +76,7 @@ int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
     return 0;
 }
 
-void sendAllParticipants(vector<ParticipantInfo> *ParticipantsInfo,ParticipantInfo part)
+void sendAllParticipants(vector<ParticipantInfo> *ParticipantsInfo, ParticipantInfo part)
 {
     int sockfd, n;
     unsigned int length;
@@ -56,17 +97,16 @@ void sendAllParticipants(vector<ParticipantInfo> *ParticipantsInfo,ParticipantIn
     serv_addr.sin_port = htons(PORTUPDATE);
     serv_addr.sin_addr.s_addr = inet_addr(part.getIp().c_str());
 
-    for (int i = 0; i < ParticipantsInfo->size(); i++){
+    for (int i = 0; i < ParticipantsInfo->size(); i++)
+    {
 
         string partStatus = ParticipantsInfo->at(i).getStatus() ? "Awaken" : "Asleep";
         buffer = "A," + ParticipantsInfo->at(i).getHostname() + "," + ParticipantsInfo->at(i).getMac() + "," + ParticipantsInfo->at(i).getIp() + "," + partStatus + ",";
         usleep(500);
-        int n = sendto(sockfd, buffer.c_str(), 256, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); 
+        int n = sendto(sockfd, buffer.c_str(), 256, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
         if (n < 0)
             printf("ERROR sendto");
-
     }
-    
 }
 
 void sendParticipantsUpdate(ParticipantInfo part, string flag, vector<ParticipantInfo> *ParticipantsInfo)
@@ -92,13 +132,15 @@ void sendParticipantsUpdate(ParticipantInfo part, string flag, vector<Participan
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORTUPDATE);
 
-    for (int i = 0; i < ParticipantsInfo->size(); i++){
+    _mutex.lock();
+    for (int i = 0; i < ParticipantsInfo->size(); i++)
+    {
         serv_addr.sin_addr.s_addr = inet_addr(ParticipantsInfo->at(i).getIp().c_str());
-        int n = sendto(sockfd, buffer.c_str(), 256, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)); 
+        int n = sendto(sockfd, buffer.c_str(), 256, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
         if (n < 0)
             printf("ERROR sendto");
-
     }
+    _mutex.unlock();
 }
 void printManagerInfo(string mac, string hostname, string ip)
 {
@@ -108,32 +150,7 @@ void printManagerInfo(string mac, string hostname, string ip)
     cout << "Manager MAC Address: " << mac << endl;
     cout << "Manager IP: " << ip << endl;
 }
-/*
-void initiate(char *interfaceRede)
-{
 
-    vector<ParticipantInfo> ParticipantsInfo;
-
-    while (true)
-    {
-
-        if (managerFlag)
-        {
-            
-            thread(broadcast(interfaceRede, &ParticipantsInfo)).detach();
-            while (managerFlag){};
-        }
-
-        if (participantFlag)
-        {
-            thread(receive(interfaceRede, &ParticipantsInfo)).detach();
-            while (participantFlag){};
-            -mandar para os outros participantes que ele é o novo manager(mac e ip)
-            -atualizar a lista dos outros participantes
-        }
-    }
-}
-*/
 // algoritmo de bully
 /*
  -Participantes

@@ -8,7 +8,7 @@ using namespace std;
 class Tools
 {
 public:
-    string getMacAddress(char *placaRede)
+    string getMacAddressAndHostname(char *placaRede)
     {
         array<char, 128> buffer;
 

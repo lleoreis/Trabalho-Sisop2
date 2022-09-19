@@ -110,7 +110,7 @@ void signalHandler(int s)
 void interfaceParticipant(string ip)
 {
     signal(SIGINT, signalHandler);
-    while (true)
+    while (managerFlag)
     {
 
         string input;

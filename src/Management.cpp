@@ -34,7 +34,6 @@ unsigned strToHex(const std::string &s)
     return hex;
 }
 
-
 std::string parseMac(const std::string &hardware_addr)
 {
     std::string ether_addr;
@@ -107,7 +106,6 @@ void sendWoL(vector<ParticipantInfo> *ParticipantsInfo, string hostname)
     n = sendto(sockfd, magicPacket.c_str(), 102, 0, (const struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in));
     if (n < 0)
         printf("ERROR sendto");
-
 }
 
 void sendExitMessage(string managerip)
@@ -135,8 +133,7 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
     char buffer[5];
     struct sockaddr_in exit_addr;
     unsigned int length = sizeof(struct sockaddr_in);
-    int reuse =1;
-
+    int reuse = 1;
 
     exit_addr.sin_family = AF_INET;
     exit_addr.sin_port = htons(PORTMANAGEMENT);
@@ -151,7 +148,7 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
 
     bind(sockfd, (struct sockaddr *)&exit_addr, sizeof(struct sockaddr));
 
-    while (selfkill)
+    while (selfkill && managerFlag)
     {
         m = recvfrom(sockfd, buffer, 5, MSG_DONTWAIT, (struct sockaddr *)&exit_addr, &length);
 
@@ -164,12 +161,9 @@ void listenExit(vector<ParticipantInfo> *ParticipantsInfo)
             ParticipantInfo part = ParticipantsInfo->at(pos);
             ParticipantsInfo->erase(ParticipantsInfo->begin() + pos);
             update = true;
-            sendParticipantsUpdate(part,"R",ParticipantsInfo);
-            //remove = true;
-            //global Vector<ParticipantInfo>.pushback() --- toda escrita bloqueante
+            sendParticipantsUpdate(part, "R", ParticipantsInfo);
             selfkill = false;
         }
-
     }
-	selfkill= true;
+    selfkill = true;
 }

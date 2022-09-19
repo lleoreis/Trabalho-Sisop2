@@ -180,9 +180,13 @@ void election(vector<ParticipantInfo> *ParticipantsInfo)
     // SELECIONA-SE UM MANAGER NOVO
     if (!notManager)
     {
+        PIDs.clear();
+        newManager = true;
+        managerFlag = true;
+        participantFlag = false;
         // flags do flipflop
+        // ATUALIZA NA LISTA DOS PARTICIPANTES QUEM É O MANAGER
     }
-    // ATUALIZA NA LISTA DOS PARTICIPANTES QUEM É O MANAGER
 
     // ZERAR LISTA GLOBAL DE PIDS
     PIDs.clear();
@@ -240,11 +244,11 @@ void participantListManagement(vector<ParticipantInfo> *ParticipantsInfo)
     bzero(&(cli_addr.sin_zero), 8);
 
     setsockopt(sockfd3, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int));
-
+    // talvez esse bind va para dentro do while pq no caso de trocar o manager o ip que ficou bindado muda(erro depende de como o SO_REUSEADDR funciona só com teste para ver)
     if (bind(sockfd3, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr)) < 0)
         printf("ERROR on binding");
 
-    while (true)
+    while (participantFlag)
     {
         n = recvfrom(sockfd3, buf, 256, 0, (struct sockaddr *)&cli_addr, &clilen);
         if (n < 0)
@@ -341,7 +345,7 @@ void sendStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, Particip
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         printf("ERROR opening socket");
 
-    while (selfkill)
+    while (selfkill && managerFlag)
     {
         monitoringManagerSend(ipToSend, sockfd);
         sleep(1);
@@ -384,7 +388,7 @@ void receiveStatusRequestPacket(vector<ParticipantInfo> *ParticipantsInfo, strin
     string ipAddress = buffer;
 
     thread(printManagerInfo, mac, hostname, ipAddress).detach();
-    while (1)
+    while (participantFlag)
     {
         monitoringParticipantReceiveAndSend(sockfd, ParticipantsInfo);
     }
