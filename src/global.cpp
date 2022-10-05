@@ -47,17 +47,35 @@ void IP_formatter(char *IPbuffer)
 
 string getIP()
 {
-    char host[256];
-    char *IP;
-    struct hostent *host_entry;
-    int hostname;
-    hostname = gethostname(host, sizeof(host)); // find the host name
-    check_host_name(hostname);
-    host_entry = gethostbyname(host); // find host information
-    check_host_entry(host_entry);
-    IP = inet_ntoa(*((struct in_addr *)host_entry->h_addr_list[0])); // Convert into IP string
-    return IP;
+    char ip_address[15];
+    int fd;
+    struct ifreq ifr;
+
+    /*AF_INET - to define network interface IPv4*/
+    /*Creating soket for it.*/
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    /*AF_INET - to define IPv4 Address type.*/
+    ifr.ifr_addr.sa_family = AF_INET;
+
+    /*eth0 - define the ifr_name - port name
+    where network attached.*/
+    memcpy(ifr.ifr_name, "eth0", IFNAMSIZ - 1);
+
+    /*Accessing network interface information by
+    passing address using ioctl.*/
+    ioctl(fd, SIOCGIFADDR, &ifr);
+    /*closing fd*/
+    close(fd);
+
+    /*Extract IP Address*/
+    strcpy(ip_address, inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
+
+    //printf("System IP Address is: %s\n", ip_address);
+    cout << ip_address << flush << endl;
+    return ip_address;
 }
+
 
 int verifyIfIpExists(string newIp, vector<ParticipantInfo> *ParticipantsInfo)
 {
